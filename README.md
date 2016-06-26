@@ -13,10 +13,7 @@
 
 ## Overview ###
 
-* [Introduction](#overview)
-* [System Requirements and Setup](#setup)
-
-## Setup
+## System Requirements and Setup
 
 ```bash
 git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git
@@ -24,5 +21,6 @@ git submodule update --init --recursive
 
 ```
 
-* [Running the environment](#running)
-* [Version](#version)
+## Running the environment
+
+## Version

@@ -16,7 +16,7 @@
 * [Introduction](#overview)
 * [System Requirements and Setup](#setup)
 
-** Setup
+## Setup
 
 ```bash
 git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git

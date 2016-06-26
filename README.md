@@ -8,7 +8,7 @@
 
 ### Supervisors:
 
-* [PhD. Jun Wang]() | MSc WSBDA Director| Senior Lecturer
+* [PhD. Jun Wang]() | MSc WSBDA Director & Senior Lecturer
 
 
 ## Overview ###

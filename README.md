@@ -23,4 +23,4 @@ git submodule update --init --recursive
 
 ## Running the environment
 
-## Version
+## License and Version

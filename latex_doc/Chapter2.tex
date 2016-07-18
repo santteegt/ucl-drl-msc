@@ -1,7 +1,47 @@
 \chapter{Background}
 \label{chapterlabel2}
 
+\section{Recommender Systems}
+
+use background patterns of \textbf{An MDP-Based Recommender System} 
+
+\subsection{Matrix Factorization}
+
+In a recommendation system such as Netflix or MovieLens, there is a group of users and a set of items (movies for the above two systems). Given that each users have rated some items in the system, we would like to predict how the users would rate the items that they have not yet rated, such that we can make recommendations to the users
+
+the task of predicting the missing ratings can be considered as filling in the blanks such that the values would be consistent with the existing ratings in the matrix.
+
+The intuition behind using matrix factorization to solve this problem is that there should be some latent features that determine how a user rates an item. Hence, if we can discover these latent features, we should be able to predict a rating with respect to a certain user and a certain item, because the features associated with the user should match with the features associated with the item.
+
+In trying to discover the different features, we also make the assumption that the number of features would be smaller than the number of users and the number of items
+
+we have a set U of users, and a set D of items. Let $\mathbf{R}$ of size $|U| \times |D|$ be the matrix that contains all the ratings that the users have assigned to the items. Also, we assume that we would like to discover K latent features. Our task, then, is to find two matrics matrices $\mathbf{P}$ (a $|U| \times K$ matrix) and $\mathbf{Q}$ (a $|D| \times K$ matrix) such that their product approximates $\mathbf{R}$:
+
+\begin{equation}
+\label{}
+\mathbf{R} \approx \mathbf{P} \times \mathbf{Q^{T}} = \hat{\mathbf{R}}
+\end{equation}
+
+Each row of $\mathbf{P}$ would represent the strength of the associations between a user and the features. Similarly, each row of $\mathbf{Q}$ would represent the strength of the associations between an item and the features. We have to find a way to obtain $\mathbf{P}$ and $\mathbf{Q}$. One way to approach this problem is the first intialise the two matrices with some values, and calculate how 'different? their product is to $\mathbf{M}$ by using gradient descent with a regularization term in order to find the minimum difference between $\mathbf{R}$ and the predicted preference matrix $\mathbf{\hat{R}}$ (using the MSE).The update rules and the cost function are defined as follows:
+
+\begin{equation}
+\label{}
+p^{'}_{ik}=p_{ik}+\alpha\frac{\partial}{\partial p_{ik}}e^{2}_{ij}=p_{ik}+\alpha(2e_{ij}q_{kj}-\beta p_{ik})
+\end{equation}
+
+\begin{equation}
+\label{}
+q^{'}_{kj}=q_{kj}+\alpha\frac{\partial}{\partial q_{kj}}e^{2}_{ij}=q_{kj}+\alpha(2e_{ij}p_{ik}-\beta p_{kj})
+\end{equation}
+
+\begin{equation}
+\label{}
+e^2_{ij}=(r_{ij}-\hat{r{ij}})^2=(r_{ij}-\sum_{k=1}^{K}p^{'}_{ik}q^{'}_{kj})^2
+\end{equation}
+
 \section{Reinforcement Learning}
+
+as a reinforcement learning task called the multi-armed bandit [Sutton and Barto 1998]
 
 Reinforcement learning involves modifying the behavior of a system such that the expected value of some possibly delayed scalar feedback is maximized.
 
@@ -19,258 +59,282 @@ exploitation corresponds with the generation of trust and the exploration with t
 
 the exploitation makes the behavior of the users more predictable, making estimates of the values more reliable. The exploration makes sure that the users have a chance to visit all pages, since it allows for all alternatives to be tried
 
-\section{Collaborative Filtering}
+\section{Recommender Systems and Reinforcement Learning}
+
+**References to papers are temporarily described with their title in order to facilitate the identification of the source, but they will be replaced with proper latex references 
 
-use background patterns of \textbf{An MDP-Based Recommender System} 
+The first experiments on using reinforcement learning techniques were focused on developing recommendation systems for web content and using implicit data from server log files which stored the navigation of the users throughout their contents.
 
-\subsection{Matrix Factorization}
+\textbf{Exploration/Exploitation in Adaptive Recommender Systems} considered reinforcement learning with an exploration/exploitation approach of unknown areas to automatically improve their recommendation policy for helping users to navigate through an adaptive web site. They state that a model-free algorithm like Q-Learning can become infeasible if the number of actions are so high. Additionally, they showed that a greedy policy can indeed lead to a suboptimal recommendation model as the use of such kind of policy function, where the \"best\" actions (e.g with higher probability) are taken, does not always improve the policy, so to avoid reinforcing values for states with initial high values, a random exploration process needs to be added to the action selection. The popular exploration $\epsilon$ greedy policy algorithm which modifies the action selection by selecting a greedy action with probability ($1-\epsilon$) or an arbitrary action with probability $\epsilon$ otherwise in order to explore  other existing options for the user. However, the exploration/exploitation dilemma came out as the exploration makes the future of a sequence less predictable influencing the estimation of the value function itself but inconsistent random actions have to be chosen to obtain a better policy. They finally demonstrated that this problem is solved by starting the algorithm with a lot of exploration and gradually reduce the parameter $\epsilon$ when the policy is getting closer to the optimum. Results concluded that a recommender system without exploration potentially can get trapped into a local maxima.
 
-In a recommendation system such as Netflix or MovieLens, there is a group of users and a set of items (movies for the above two systems). Given that each users have rated some items in the system, we would like to predict how the users would rate the items that they have not yet rated, such that we can make recommendations to the users
+\textbf{New Recommendation System Using Reinforcement Learning} presented a general framework for web recommendation that learns directly from customer's past behavior by applying an RL process which uses the SARSA method[***ref here] and a $\epsilon$-greedy policy. The system was composed of two models: a global model to keep track of customers trends as a whole, and a local model to record the user's individual browsing history. In general, the model treats pages as states of the system and links within a page as actions. To predict the next state, it used a ranking system that is also separated into 2 parts. i) a global ranking system using the data from a $Q_{global}$-matrix obtained from the action-value function to choose the next state by applying an $\epsilon$-greedy policy. It gave the chance for rank new items that have few clicks but may match a user's interest. ii) a local ranking $Q_{local}$ which uses an inverse $\epsilon$-greedy policy to estimate the next state. It gave to customers more chance to explore other products than the ones they already visited. As a result, the system finds the final total reward using  $Q_{total}=Q_{local} + wQ_{global}$ where $w \in (0-1]$ is a weight hyper parameter of the model.
+
+Authors performed some experiments to find a relationship between $\epsilon$ and the user click rate. The findings showed that a value of $\epsilon=0.2$ preserves the balance between exploration and exploitation, meanwhile If $\epsilon < 0.2$ the system will gave small chances to users to explore new items, or may include products that do not match to the customer's interest otherwise ($\epsilon > 0.2$). Even if the purpose of $Q_{local}$ was to promote new products, it was less effective than $Q_{global}$. In conclusion, the result of this experiments explained that if a user is allowed to do much exploration, she has a chance to find non-relevant products, but if users just exploit the system, they have a chance to just keep receiving the same recommended items over time.
+
+\textbf{An MDP-Based Recommender System} argue that it is more appropriate to formulate the problem of generating recommendations as a sequential optimization problem so they described a novel approach for a commercial web site based on Markov Decision Processes (MDPs) together with a novel predictive model that outperformed previous models. An MDP-based recommender system can take into account the expected utility and the long-time effect of a particular recommendation, and suggest an item whose immediate reward is lower, but leads to more \textit{profitable} rewards in the future. Moreover, these considerations are taken into account automatically by any optimal policy generated for an MDP model which ensures a balance in the generation of the maximal expected reward stream. However, the previous benefits are offset by the fact that the model parameters are unknown, randomly initialized and that they take considerable time to converge. So, they introduced in their work a model-based system for collaborative filtering with a strong initial model, which solves quickly, and that does not consume too much memory.
+
+Before implementing the recommender, they initialize a predictive model of user behavior using data extracted from the web site, and then use it to provide the initial parameters for the MDP. The predictive model can be thought of as a first-order Markov chain (MC)[***] of user dynamics in which states correspond to sequences of \textit{k} events (in this case: previous selections) representing relevant information about the users interaction. They experimented with small values of \textit{k} ($k \in [1-5]$) in order to overcome data sparsity and MDP solution complexity issues. Thus, the transition function describes the probability that a user whose \textit{k} recent selections were $x_1, . . . ,x_k$ will select the item $x'$ next. Finally, enhancements on the maximum-likelihood n-gram formulation[***] were proposed in order to find a good estimate of the transition function for the initial predictive model without suffering the problem of data sparsity and bad performance.
+
+The proposed maximum-likelihood estimation include three major enhancements. First, a form of skipping based on the observation that the occurrence of the sequence $x_1,x_2,_x3$ lends some likelihood to the sequence $x_1,x_3$. In other words, after initializing the counts of each state transition using the observed data, for any given user sequence $x_1,x_2, ...,x_n$, they added a fractional count $1/2^{( j-(i+3))}$ to the transition from $s=\langle x_i,x_{i+1},x_{i+2}\rangle$ to $s'=\langle x_{i+1},x_{i+2},x_j\rangle$, for all $i+3 < j ?n$, which acts as a diminishing probability of skipping a large number of transactions in the sequence. Equation \ref{eq:trMCSkipping} shows the updated formulation of the (normalized )maximum-likelihood estimation, where $count(s,s')$ is the fractional count associated with the transition from s to s'.
+
+\begin{equation}
+\label{eq:trMCSkipping}
+tr_{MC}^{base}(s,s')=\frac{count(s, s')}{\sum_{s'}count(s, s')}
+\end{equation}
+
+The second enhancement exploits the similarity  of sequences in a form of clustering. The idea is that the likelihood of transition from $s$ to $s'$ can be predicted by occurrences from $t$ to $s'$, where $s$ and $t$ are similar. Equation \ref{eq:simTr} define the similarity of states $s_i$ and $s_j$ where $\delta(\dot, \dot)$ is the Kronecker delta function and $s^m_i$ is the m-th item in state $s_i$. Then, the similarity count from state $s$ to $s'$ was defined using equation \ref{eq:simCountTr}. Finally, the new transition probability from $s$ to $s'$ given by equation \ref{eq:newTr} yielded the best results during evaluation.
+
+\begin{equation}
+\label{eq:simTr}
+sim(s_i, s_j)=\sum_{m=1}^{k}\delta(s_i^m, s_j^m) \cdot (m+1)
+\end{equation}
+\begin{equation}
+\label{eq:simCountTr}
+simcount(s, s')=\sum_{s_i} sim(s, s_i) \cdot tr^{base}_{MC}(s, s')
+\end{equation}
+\begin{equation}
+\label{eq:newTr}
+tr_{MC}(s, s')=\frac{1}{2}tr^{base}_{MC}(s, s') + \frac{1}{2}\frac{simcount(s, s')}{\sum_{s''}simcount(s, s'')}
+\end{equation}
+
+Due to larger values of k lead to states that are more informative whereas smaller values of k lead to states with more statistical meaning, they added as a third enhancement a finite mixture modeling (e.g. combine a trigram, a bigram and a unigram into a single model) in a way to balance these conflicting properties by mixing k models, where the \textit{i-th} model looks at the last i transactions. In addition, they applied mixture weights during experiments as $\pi_1 = � � � = \pi_k = 1/k$ so the generation of the models for smaller values entails little computational overhead.
+
+An evaluation on the accuracy of the predictive model was performed using real user transactions and browsing paths (from web logs) from the commercial store web site. Besides, they compared different variations of their enhancements on the MC approach with other models like i)both sequential and non-sequential form of the \textit{Microsoft Commerce Server 2000}(Heckerman et al. (2000))[***] (local distributions are probabilistic decision trees); and ii)unordered versions of MC models. Results outlined that the MC models using skipping, clustering, and mixture modeling yielded better results than any other other variation of model \textit{i}. Sequence-sensitive models outperformed the accuracy of non-sequential models, while MC models were superior to the predictor models. and the skipping enhancement was only beneficial for the transactions data set
+
+On the other hand, the MDP-based recommender system, models the recommendation process as a sequence of states and attempts to optimize it. Here, the predictive model played an important role in the construction of the model as it provides the probability, denoted by $Pr_{pred}(x|x_1, . . . ,x_k)$, that a user purchase a particular item x given her sequence of past purchases  $x_1, . . . ,x_k$. The components of the reinforcement learning model are defined as follows: a) the states are the \textit{k}-tuples of items purchased; b) the actions correspond to a recommendation of an item; c) the rewards depends on the last item defining the current state only, where its net profit of the item was used; and d) the transition function is the stochastic element of the model and estimates the user's actual choice. In brief, equation \ref{eq:trMDP} represents the transition function or the probability that a user will select item $x''$ given that item $x'$ is recommended in state $\langle x_1,x_2,x_3 \rangle$.
+
+\begin{equation}
+\label{eq:trMDP}
+tr^1_{MDP}(\langle x_1,x_2,x_3 \rangle,x',\langle x_2,x_3,x'' \rangle) 
+\end{equation}
+
+In order to solve the MDP, the policy iteration algorithm was used as their state space enjoys of the following features that lead to fast convergence: i) the inherent directionality that transitions showed are useful to reduce the running time of the solution algorithm; ii) the computation of an optimal policy is not sensitive to variations in the number of \textit{k} past transactions a state represent; iii) ignoring unobserved states by maintaining transition probabilities only for states where a transition actually occurred; and  iv) using the independence of recommendations or Markov property, where the probability that a user buys a particular item depends only on her current state, allowing the algorithm to handle large action spaces.Tests performed on real data showed that the policy iteration converges after a few iterations.
+
+To update the model, the system used an off-line approach which keeps track of the recommendations and the user selections and build a new model at fixed time intervals (e.g. once a week). So, to re-estimate the transition function at time $t+1$ the following counts are obtained:
+
+\begin{equation}
+\label{eq:countIn}
+c^{t+1}_{in}(s, r, s \cdot r) = c^{t}_{in}(s, r, s \cdot r) + count(s, r, s \cdot r)
+\end{equation}
+\begin{equation}
+\label{eq:countOut}
+c^{t+1}_{out}(s, r, s \cdot r) = c^{t}_{out}(s, r, s \cdot r) + count(s, s \cdot r) - count(s, r, s \cdot r)
+\end{equation}
+\begin{equation}
+\label{eq:countTotal}
+c^{t+1}_{total}(s, s \cdot r) = c^{t}_{total}(s, r, s \cdot r) + count(s, s \cdot r)
+\end{equation}
+\begin{equation}
+\label{eq:modelProb1}
+tr(s, r \in R, s \cdot r) = \frac{c^{t+1}_{in}(s, r, s \cdot r)}{c^{t+1}_{total}(s, s \cdot r)}
+\end{equation}
+\begin{equation}
+\label{eq:modelProb2}
+tr(s, r \notin R, s \cdot r) = \frac{c^{t+1}_{out}(s, r, s \cdot r)}{c^{t+1}_{total}(s, s \cdot r)}
+\end{equation}
+\begin{equation}
+\label{eq:initIn}
+c^{0}_{in}(s, r, s \cdot r) = \xi_S \cdot tr(s, r, s \cdot r)
+\end{equation}
+\begin{equation}
+\label{eq:initOut}
+c^{0}_{out}(s, r, s \cdot r) = \xi_S \cdot tr(s, r, s \cdot r)
+\end{equation}
+\begin{equation}
+\label{eq:initTotal}
+c^{0}_{total}(s, s \cdot r) = \xi_S 
+\end{equation}
+where Equation \ref{eq:countIn} corresponds to the number of times a recommendation r was accepted in state s, equation \ref{eq:countOut} is the number of times a user select item r in state s even though it was not recommended, equation \ref{eq:countTotal} is the number of times a user pick item r while being in state s, regardless of whether it was recommended or not, and finally, equations \ref{eq:modelProb1} and \ref{eq:modelProb2} represent the actual probability that a user will select item r given state s when r was recommended or not respectively. 
 
-the task of predicting the missing ratings can be considered as filling in the blanks such that the values would be consistent with the existing ratings in the matrix.
+The transition function had to be carefully initialized in order to be fairly accurate when the system was first deployed to avoid the cold-start problem, so the at time $t=0$ were calculated using equations \ref{eq:initIn} \ref{eq:initOut} \ref{eq:initTotal}, where $\xi_s= 10 \cdot count(s)$, causing states that are infrequently observed to be updated faster than already observed states. Moreover, when the first transition to a state $s \cdot r$ is observed, its probability is initialized to 0.9 the probability of the most likely next item in state s with $\xi_s =10$. In this way, the system balances the need to explore unobserved items in order to improve its model by recommending non-optimal items occasionally until getting their actual counts. 
 
-The intuition behind using matrix factorization to solve this problem is that there should be some latent features that determine how a user rates an item. Hence, if we can discover these latent features, we should be able to predict a rating with respect to a certain user and a certain item, because the features associated with the user should match with the features associated with the item.
+Finally, an empirical validation of their thesis compared the performance in terms of their value or utility and computational cost of the MDP-based recommender system with the performance of a recommender  based on the predictive model (MC) as well as other variants. The deployed system was built using three mixture components (combined using an equal weight), with history length $k \in [1,3]$ for both the MDP and MC model, and used the policy-iteration procedure and approximations. The average profit generated by users using the site was 28\% higher for the MDP group. while in terms of computational costs, the MDP-based model provided fastest recommendations at the price of more memory use, and also built models more quickly. 
 
-In trying to discover the different features, we also make the assumption that the number of features would be smaller than the number of users and the number of items
+All in all, the approach presented make use of off-line data to initialize a model in order to provide an adequate initial performance and overcome the cold-start problem, the authors avoid using some form of reinforcement learning technique as they argue that its implementation requires many calls and computations by a recommender system online, which will lead to slower responses, producing undesirable results for the web site owner.
 
-we have a set U of users, and a set D of items. Let $\mathbf{R}$ of size $|U| \times |D|$ be the matrix that contains all the ratings that the users have assigned to the items. Also, we assume that we would like to discover K latent features. Our task, then, is to find two matrics matrices $\mathbf{P}$ (a $|U| \times K$ matrix) and $\mathbf{Q}$ (a $|D| \times K$ matrix) such that their product approximates $\mathbf{R}$:
+\textbf{Usage-Based Web Recommendations: A Reinforcement Learning Approach} proposed a machine learning perspective based on a off-line reinforcement learning model to solve the recommendation problem using the Q-Learning algorithm while employing concepts and techniques commonly applied in the web usage mining domain. They argued that their decision on using this method seems appropriate for the nature of web page recommendation problem
+as it provides a mechanism which is constantly learning, does not need periodic updates, can be easily adapted to changes in the website structure and new trends in users behavior. Consequently, the system was trained using web usage logs available as the training set and experimental evaluations were carried out in order to demonstrate how this approach can improve the quality of web recommendations.
 
-\begin{center}
-$\mathbf{R} \approx \mathbf{P} \times \mathbf{Q^{T}} = \hat{\mathbf{R}}$
-\end{center}
+The RL problem formulation was considered as as a competition between different recommender systems to gather more points, than a 2-player game, as in the recommender system environment, self-play, a typical technique used in training RL systems[***], cannot be used to train the system so the system needed of actual web usage data for training. Moreover, the model, which has a stochastic nature, consists of the following properties: 
 
-Each row of $\mathbf{P}$ would represent the strength of the associations between a user and the features. Similarly, each row of $\mathbf{Q}$ would represent the strength of the associations between an item and the features. We have to find a way to obtain $\mathbf{P}$ and $\mathbf{Q}$. One way to approach this problem is the first intialise the two matrices with some values, and calculate how 'different? their product is to $\mathbf{M}$ by using gradient descent with a regularization term in order to find the minimum difference between $\mathbf{R}$ and the predicted preference matrix $\mathbf{\hat{R}}$ (using the MSE).The update rules and the cost function are defined as follows:
+\textbf{states:} showing the history of pages visited by the user so far. For this case, a notion of N-Grams was adopted and a sliding window of size $w$ was set to limit the page visit sequences to a constant number and avoid large state spaces.
 
-\begin{center}
-$p^{'}_{ik}=p_{ik}+\alpha\frac{\partial}{\partial p_{ik}}e^{2}_{ij}=p_{ik}+\alpha(2e_{ij}q_{kj}-\beta p_{ik})$
-$q^{'}_{kj}=q_{kj}+\alpha\frac{\partial}{\partial q_{kj}}e^{2}_{ij}=q_{kj}+\alpha(2e_{ij}p_{ik}-\beta p_{kj})$
+\textbf{actions:} consists of a single page recommendation at each state.
 
-$e^2_{ij}=(r_{ij}-\hat{r{ij}})^2=(r_{ij}-\sum_{k=1}^{K}p^{'}_{ik}q^{'}_{kj})^2$
-\end{center}
+\textbf{policy:} computes the reward of performing an action a in state s. It rewards actions positively if it recommends a page that will be visited in one of the consequent states (not necessarily the immediate next state). Formally, rewards are dependent on the next state, the intersection of previously recommended pages in each state and the current page sequence of the state. 
 
+As the model does not have a predetermined reward function $R(s, a)$ or a transition function $\delta(s, a)$ to give the next state, the reward can be estimated by considering each state s is formed by two sequences $V_s =\langle p^V_{s,1}, p^V_{s,2},..., p^V_{s,w} \rangle$, and $R_s =\langle p^R_{s,1}, p^R_{s,2},..., p^R_{s, n} \rangle$, indicating the sequence of visited and previously recommended pages respectively, where $p^V_{s, i}$ , indicates the ith visited page in the state and $p^R_{s, i}$ indicates the ith recommended page in the state s, Additionally, they had two considerations in the implementation of the reward function: i) only the occurrence of the last page visited in the recommended pages list in state $s'$ is used to reward the action performed in the previous sate $s$, and ii) the time the user spends on a page, assuming that the more time a user spends on a page the more interested. So, the reward function was defined as follows:
+\begin{enumerate}
+\item Assume $\delta(s, a) = s'$
+\item $P_R = V_{s', w} \cap R_{s'}$
+\item if $p \neq \emptyset$
+\item For page $p$ in $P_R$
+\begin{enumerate}
+\item $r(s, a) += reward(Dist(Rs', p), Time(p^v_w))$
+\end{enumerate}
+\end{enumerate}
+where $Dist(R_i, p)$ is the distance of page p from the end of the recommended pages list and $Time(p^v_w)$ indicates the time user has spent on the last page of the state. Finally, The $reward(Dist, Time)$ function was defined as a linear combination of both values as $reward(Dist,  Time) = \alpha \times dist + \beta \times Time$ with $\alpha + \beta = 1$.
 
-\section{Collaborative Filtering and Reinforcement Learning}
+Subsequently, the  definition of the learning algorithm also took into consideration the following characteristics: 1) the Q-Learning algorithm given by equation \ref{eq:QLearningalg} was proposed as an update rule and the structure to estimate how successful a prediction can be. Here, the decreasing value of $\alpha_n$ caused these values to gradually converge and decreases the impact of changing reward values as the training continues; 2) an $\epsilon$-greedy action selection was picked as it is important to add some exploration of the state space especially at the beginning of the training; 3) the algorithm followed a TD(0) off-policy learning[***] procedure, as the maximum Q value of the next state is considered when estimating the future reward; and 4) the computation of $r(s, a)$ suffered a slightly change by considering value of $Q(s',a)$ with a coefficient $\gamma$ in order to propagate the value of performing a specific action beyond the limits imposed by the $w$. As the authors mentioned in their work: "the basic idea is that when an action/recommendation is appropriate in state Si, indicating the recommended page is likely to occur in the following states, it should also be considered appropriate in state $S_{i-1}$ and the actions in that state that frequently lead to $S_i$". During the training phase, the described algorithm converged after a few thousand (between 3000 and 5000) visits of each episode or user session.
 
-\textbf{Exploration/Exploitaition in Adaptive Recommender Systems} considered reinforcement learning with an exploration/exploitation approach of unknown areas to automatically improve their recommendation policy for helping users to navigate through an adaptive web site and showed that a greedy policy can indeed lead to suboptimal recommending. They state that a model free algorithm like Q-Learning can become infeasible if the number of actions is so high. Additionally, the use of a greedy policy, where the best actions are taken, does not always improve the policy, so to avoid reinforcing values for states with initial high values, a random exploration process needs to be added to the action selection. The popular exploration $\epsilon$ greedy policy was used where the greedy action is selected with probability ($1-\epsilon$) and an arbitrary other action with probability $\epsilon$ otherwise. However, the exploration/exploitation dilemma comes out as the exploration makes the future of a sequence less predictable influencing the estimation of the value function itself but inconsistent random actions have to be chosen to obtain a better policy. This problem is solved by starting with a lot of exploration and gradually reducing $\epsilon$ when the policy is getting closer to the optimum. Finally, their experiments concluded that a recommender system without exploration potentially can get trapped into a local maxima.
+\begin{equation}
+\label{eq:QLearningalg}
+Q_n(s, a )= [(1 - \alpha_n)Q_{n-1}(s, a) + \alpha_n[r(s, a)  + \gamma \max_{a'} Q_{n-1}(\delta(s, a), a')]
+\end{equation}
+with
+\begin{equation}
+%\label{}
+\alpha_n = \frac{1}{1 + visits_n(s, a)}
+\end{equation}
 
-\textbf{New Recommendation System Using Reinforcement Learning} presented a general framework for web recommendation that learns directly from customer's past behavior by applying an RL process which uses the SARSA method[***ref here] and a $\epsilon$-greedy policy. The system was composed of two models: a global model for all customers to keep track of the trends as a whole, and a local model to record the user's individual browsing history. In general, the model treats pages as states of the system and links within a page as actions. To predict the next state, it will use a ranking system that is also separated into 2 parts. First, a global ranking system which uses the data from a $Q_{global}$-matrix (obtained from the action-value function) to choose the next state by using an $\epsilon$-greedy policy. It gives a chance for new items that have few clicks but may match a user's interest. The second part is composed by a local ranking $Q_{local}$ which uses an inverse $\epsilon$-greedy policy to estimate the next state. It gives the customer more chance to explore other products than the ones he already visited. Finally, the system finds the final total reward using $Q_{total}=Q_{local} + wQ_{global}$ where $w \in (0-1]$ is a weight hyper parameter. 
+For the purpose of performing a set of experimental evaluations of the proposed model, simulated log files generated by a web traffic simulator were used to train and tune the rewarding functions. The metric used for each evaluation were Recommendation Accuracy, Coverage (similar to precision and recall metrics) and Shortcut Gain (measures how many page-visits users can save if they follow the recommendations). First of all, an experiment with different values of $w$ showed that fixed window size of 3 as recommendation history resulted on better accuracy and shortcut gain, so this value was set for the rest of system evaluations. Next, they experimented the impact of gradually increasing (in steps of 5\%) the coefficient $\alpha$ of parameter \textit{Dist} in the reward function, resulting on both higher accuracy and higher shortcut gain for values up to 15\%. This matched the natural consequence of adding a bounded size of window on recommendations history. Finally, a set of experiments also tested the system performance by increasing the coefficient $\gamma$ in the reward function, obtaining an increase of the accuracy until reaching an upper bound (around 0.20\%) where it began to drop, while the shortcut gain increased steadily up to a point where recommendations became so inaccurate.
 
-Authors performed some experiments to find a relationship between $\epsilon$ and the user click rate. The findings showed that a value of $\epsilon=0.2$ preserves the balance between exploration and exploitation, meanwhile If $\epsilon < 0.2$ the system will gave small chances to users to explore new items, or may include products that does not match to the customer's interest otherwise ($\epsilon > 0.2$). Although the purpose of $Q_{local}$ was to promote new products, it was less effective than $Q_{global}$. In conclusion, the result of this experiment explained that if a user is allowed to do much exploration, he/she has a chance to find non-relevant products, but if users just exploit the system, they have a chance to just keep receiving the same recommended items over time.
+Briefly, the proposed off-line reinforcement learning method used a simple formulation of the recommendation problem but it obtained much better results compared with two baselines methods: association rules and item-based collaborative filtering (with probabilistic similarity measure). As the coverage increased, naturally accuracy decreased in all systems, but the RL approach outperformed the other two systems displaying a lower rate in which its accuracy decreased. Authors concluded that the algorithm is a good candidate for solving the recommendation problem as it does not rely on any previous assumptions regarding the probability distribution of visiting a page after having visited a sequence of pages, and that the nature of the problem matches perfectly with the notion of delayed reward (known as temporal difference). In addition, they suggested that it could be possible to use a more complicated formulation of the reward function rather than a linear combination of factors, such as a neural networks, in order to produce better results.
 
-\textbf{An MDP-Based Recommender System} 
+Later, in \textbf{A Hybrid Web Recommender System Based on Q-Learning} they exploited the previous reinforcement learning framework and present a hybrid web recommendation method enriched with semantic knowledge about the usage behavior as a way to improve the RL solution and obtain a more generalized solution regarding to the usage data it has. The new system used the incremental DCC[***] clustering algorithm to map pages to higher level concepts, and thus exploit the hierarchical and conceptual document clustering to provide a semantic relationship between them in combination with the usage data in a user session. Therefore, each state now consists of a sequence of concepts visited by the user, while actions are recommendation of pages that belong to a specific concept. This definition resulted in a much smaller state-action space as the size of the state space is now dependent on the number of distinct page clusters.
 
-We argue that it is more appropriate to view the problem of generating recommendations as a sequential optimization problem and, consequently, that Markov decision processes (MDPs) provide a more appropriate model for recommender systems. MDPs introduce two benefits: they take into account the long-termeffects of each recommendation and the expected value of each recommendation
+Now, an action $a$ recommending a concept $c$ is rewarded if the user visits a page belonging to concept $c$ later in his browsing session. The new reward function shown in  equation \ref{eq:hybridreward} takes into account the content similarity of the recommended and visited pages, where CBR represents the content-based reward of an action (which is equal to the similarity score between concepts) defined in equation \ref{}, and UBR is the usage-based reward defined in the previous approach.
 
-an MDP-based recommender system must employ a strong initialmodel,must be solvable quickly, and should not consume toomuchmemory
+\begin{equation}
+\label{eq:hybridreward}
+UBR(Dist(R_{s'} , r),Time(P_{t+1})) \times CBR(r, C(P_{t+1}))
+\end{equation}
+\begin{equation}
+\label{}
+l(c) = -log \mathcal{p}(c)
+\end{equation}
+\begin{equation}
+\label{}
+Sim(c_1, c_2) = max_{a \in LCA} {l(a)}
+\end{equation}
 
-it is the first to report experimental analysis conducted on a real commercial site
+To sum up, the algorithm did not make predictions based on weak usage patterns as now the states represent a generalized view of many single visit sequences. However, this approach seems specifically appropriate for the off-line training phase. On the other hand, evaluation results showed the flexibility of the new RL approach to incorporate different sources of information to improve the quality of recommendations, and also demonstrated how it could be extended in order to incorporate various sources of information.
+
+\textbf{Improving adaptation of ubiquitous recommender systems by using reinforcement learning and collaborative filtering} proposed a learning system for Context-based Recommender System (CBRS)[***] by modeling an MDP agent which combines a hybrid Q-learning algorithm (HQL), collaborative filtering and case-based reasoning techniques in order to define a \textit{contextual} recommendation process based on different context dimensions (cognitive, social, temporal, geographic). It addressed the following problems that came out in recommender systems: a)avoid the intervention of experts as the use of the Q-learning algorithm does not need initial user?s information; b)reduce the cold start problem thanks to the ability of the Q-learning algorithm to explore the knowledge of other users in the same context by using CF; c)accelerate the learning process by mixing Q-learning with case-based reasoning techniques (reuse of cases yields to faster user satisfaction); and d)an exploration strategy allows recommendations to adapt to the user's interest evolution.
+
+As a result, the model was based in three main algorithms. First, a hybrid-based CF approach which combines the advantages of the memory-based (fill the missing rating values of the user-item matrix) and model-based CF (form the nearest neighbors of each item). Second, the Case based reasoning (CBR)[***] algorithm was picked as it uses knowledge of previous cases to solve new problems, by finding a similar past case and thus reusing it to solve the current situation. Finally, the Q-learning algorithm was improved by: i)reusing past cases information gathered from the CBR, and ii)giving the ability to use information from other users sharing the same interests, by extending the $\epsilon$-greedy strategy to select a random action based on the similarity of user profiles (obtained from the CF algorithm).
+
+The global mechanism of a context-based recommender system (CBRS) which uses the HyQL algorithm was composed mainly by the following modules:
+
+\textbf{sensing module:} detects time, location, cognitive and social dimensions of the context.
+
+\textbf{thinking module:} composed by an abstraction phase that is based on inference rules defined on temporal and space ontologies, and an aggregation phase the two dimensions.
+
+\textbf{reasoning module:} chooses an action based on the HyQL algorithm
+
+Finally, evaluations comparing the Q-learning and HyQL with respect to solving the cold start problem were performed, and consisted on testing the precision of the first 100 trials of the system starting when the user is connected to the system. In General, results showed that the precision of HyQL was greater than the precision of Q-learning, demonstrating that this approach is a good candidate to be used in the recommender system problem. However, as the system implementation depends on the context data, it needs of a hand-crafted feature creation process in order to be used on different situations.
+
+\textbf{Exploration in Interactive Personalized Music Recommendation: A Reinforcement Learning Approach} formulated an interactive and personalized music recommendation approach as a reinforcement learning task based on the multi-armed bandit problem, where songs were treated as arms and user ratings as payoffs, and the objective function was set to maximize the cumulative reward of a targeted user over the long term. The model considered the exploration-exploitation trade-off and a Bayesian model in order to deal with both audio content and the novelty of recommendations and thus learn the user musical preferences online based on their feedback. 
+
+The model differs from other approaches in three aspects: i)it is based on audio content; ii)the model is highly efficient as it allows easy online updates; and iii)the model is evaluated based on online real-life user interaction data and does not need a test dataset. Moreover, each recommendation serves two objectives: (1) satisfy the user?s current musical taste, and (2) obtain user feedback needed to improve future recommendations. Even though authors mentioned that an MDP formulation can model a broader range of problems than the multi-armed bandit, it requires much more data to train and is often more computationally expensive.
 
-we suggest that recommendation is not simply a sequential prediction problem, but rather, a sequential decision problem
+Their choice to work with a the content-based approach rather CF was justified for the following reasons. First, due to the bayesian nature of their formulation, methods for matrix factorization (MF) are much more complicated than the proposed linear model. Second, MF often needs of large amount of data for training. Third, existing Bayesian MF methods are inefficient for online updating, so they do not fit in a bandit model which is updated once a new rating is obtained, Fourth, a content-based method does not suffer of the new song problem. Finally, content-based approaches capture causality within music content rather than pure correlation that CF methods offer.
 
-With this view in mind, a more sophisticated approach to recommender systems emerges. First,
-one can take into account the utility of a particular recommendation. Second, we might suggest an item whose immediate reward is lower, but leads to more likely or more profitable rewards in the future
-These considerations are taken into account automatically by any good or optimal policy gen-
-erated for anMDP model of the recommendation process
+Subsequently, the interactive, personalized recommender system used a reinforcement learning task called the multi-armed bandit[***] which addressed both the exploration-exploitation trade-off and playlist generation with a single unified model. Whereas some RL models considered only a greedy strategy that does not actively seek fort user feedback, resulting in suboptimal recommendations over the long term, this model takes into account the uncertainty of both the mean and the variance of the rating distribution, allowing the recommender to explore user preferences actively rather than merely exploiting the available rating information. An approach better than the typical $\epsilon$-greedy method to solve of the multi-armed bandit problem, is the use of the Upper Confidence Bound (UCB)[***] algorithm, but it requires an explicit form of the confidence bound that is difficult to derive in the case of music recommendation.
 
-The benefits of an MDP-based recommender system discussed above are offset by the fact
-that the model parameters are unknown
-they take considerable time to converge and their initial behavior is random.
+The personalized music rating model was focused on audio content and novelty. The former considers the overall preference of a song and is represented by the linear function $U_c = \mathbf{\theta'x}$ where $\mathbf{x}$ is the feature vector of the audio content and $\mathbf{\theta}$ is the user preference in different music features (it was considered constant over time). On the other hand, the novelty factor was defined after examining the song's repetition distribution of 1000 users? listening histories collected from the Last.fm dataset. Results showed that most of the songs a user listens to are repeats and that the frequency distribution approximately follows the Zipf?s law[***], where only a small set of songs are repeated most of the time. As a consequence, it was assumed that the novelty of a song decays immediately after it is listened to and then gradually recovers according to the function $U_n = 1 - e^{-t/s}$, where s is a recovery speed (unknown) parameter learned from user interactions and $e^{-t/s}$ is the well-established forgetting curve[***] that measures user's memory retention of a song. In other words, novel songs are those of which that at a certain time a user has little or no memory. It is important to emphasize that the definition of this factor could be different or not applicable to other recommendation contexts than the musical environment.
 
-The approach we suggest initializes a predictive model of user behavior using data gathered on the site prior to the implementation of the recommender system. We then use the predictive model to provide initial parameters for theMDP
+Overall, the rating model, defined in equation \ref{eq:combinedRatingModel}, assumed that a rating is formed as the combination of the user?s preference of the song?s content and the dynamically changing novelty. Hence, each user was represented by a set of parameters $\Omega = \{\theta, s\}$, where $\Omega$ needs to be estimated from historical data, so uncertainty had to be taken into account. 
 
-The predictive model can be thought of as a (first-order)Markov chain in which states correspond to sequences of events
+\begin{equation}
+\label{eq:combinedRatingModel}
+U = U_cU_n = \mathbf{\theta'x}(1 - e^{-t/s})
+\end{equation}
 
-In this paper, we consider model- based systems for collaborative filtering
+With this in mind, the new problem formulation was solved using the Bayesian Upper Confidence Bound (Bayes-UCB)[***] algorithm. In The Bayes-UCB, the true expected payoff $U_i$ defined in equation \ref{eq:expectedRatingUCB} for arm \textit{i} is treated as a random variable and the posterior distribution $p(U_i|\mathcal{D})$ of $U_i$ given the history of payoffs $\mathcal{D_l} = \{(\mathbf{x_i}, t_i, r_i)\}^{l}_{i=1}$ is predicted using equations\ref{eq:posteriorDistrOmega} and \ref{eq:posteriorDistrU}. Finally, the Bayes-UCB recommends song $k^*$ that maximizes the quantile function $argmax_{k=1...|S|} Q(\alpha, P(U_k|D_l))$ where Q satisfies$\mathcal{P}[Uk \leq Q(\alpha, P(U_k|D_l))] = \alpha$ and $\alpha = 1 - \frac{1}{l+1}$
 
-at each stage a new list is calculated based on the user?s past ratings, will lead us naturally to our reformulation of the recommendation process as a sequential optimization process. optimal rec-
-ommendations may depend not only on previous items pruchased, but also on the order in which those items are purchased
+\begin{equation}
+\label{eq:expectedRatingUCB}
+\mathcal{E}[R_i] = U_i = \mathbf{\theta'x_i}(1 - e^{-t_i/s})
+\end{equation}
+\begin{equation}
+\label{eq:posteriorDistrOmega}
+p(\mathbf{\Omega}|D_l) \propto p(\mathbf{\Omega}) p(\mathbf{\Omega}|D_l)
+\end{equation}
+\begin{equation}
+\label{eq:posteriorDistrU}
+p(U_k|D_l) = \int p(U_k|\mathbf{\Omega}) p(\mathbf{\Omega}|D_l) \mathbf{d\Omega}
+\end{equation}
 
-policy-iteration (Howard, 1960), which we use in our imple- mentation
+Since equation \ref{eq:posteriorDistrOmega} does not have a closed-form solution, a Markov Chain Monte Carlo (MCMC)[***] should be used as an approximate inference algorithm. However, authors argued that its performance is very low and users could wait for up to a minute until the MC converges. Hence, they developed a Bayesian model using a piecewise-linear function approximation, as well as a variational inference algorithm to approximate posterior distribution of $\Omega$. For more details about the model definition, please refer to section 4.2 in [***](this paper). Authors mentioned that even if the model just considered audio content and novelty of music on its definition, other factors like diversity, mood or genre could be also approximated by linear functions and then added to it. All in all, the defined approximate Bayesian model was used to obtain the fixed-level quantile of $p(U_i|\mathcal{D})$ and thus estimate the expected payoff and confidence bound of the conceptual Bayes-UCB.
 
-Unfortunately, these recent methods do not seem applicable in our domain in which the structure of the state space is quite different ? that is, each state can be viewed as an assignment to a very small number of variables (three in the typical case) each with very large domains. Moreover, the values of the variables (describing items bought recently) are correlated
+Evaluations of both efficiency and effectiveness were carried out over six recommendation algorithms and models (Random, LinUCB-C (Content-based), LinUCB-CN (Content and novelty based), Bayes-UCB-CN, Bayes-UCB-CN-V (Variational Inference), and Greedy-CN) demonstrating that the proposed approaches were accurate and highly efficient. The effectiveness study used the \textit{regret}[***] metric to compare the algorithms, showing that the Bayes-UCB-based algorithms performed better than Greedy-CN due to the balance of exploration and exploitation it offers, whereas the good performance of the Bayes-UCB- CN-V indicated that the piecewise-linear approximation and variational inference were appropriately defined. Moreover, results in the efficiency study empirically proved that the developed variational inference algorithm was 100 times faster than the MCMC. Additionally, a user study and an overall evaluation of recommendation performance dropped good conclusions. Results showed that the bandit approach with the novelty factor addressed the cold-start problem improving the recommendation performance.
 
-However, we were able to exploit the special structure of our state and action spaces using different techniques. In addition, we introduce approximations that exploit the fact that most states ? that is, most item sequences ? are highly unlikely to occur
+To sum up, this work was considered by the authors as the first to balance exploration and exploitation based on reinforcement learning and the multi-armed bandit, and thus improve recommendation performance by addressing the cold-start problem in music recommendation without relying on additional (contextual information). An approximation to the rating model and the new probabilistic inference algorithms helped to achieve real-time recommendation performance that could be generalized to other recommenders and/or media types. Finally, authors suggested that this work could be extended to model the correlations between different users to further reduce the amount of exploration by using hierarchical Bayesian models. On the other hand, if people prefer to boost the performance of CF, they suggested to exploit the exploration/exploitation trade-off idea by using the latent features learned during the matrix factorization rather than the audio features and keep other parts of the proposed system unchanged.
 
-then an
-MDP can be used to model user behavior with recommendations
+\textbf{ENHANCING COLLABORATIVE FILTERING MUSIC RECOMMENDATION BY BALANCING EXPLORATION AND EXPLOITATION} extended the work presented above by introducing exploration into the CF context. The approach used a Bayesian graphical model that takes into account the CF latent factors and novelty of recommendation, as well as a Bayesian inference algorithm to efficiently estimate the posterior rating distributions.
 
-**The Model**
-Our first step is to construct a predictive model of user purchases
-does not take into account its influence on the user
-use a Markov chain, with an appropriate formulation of the state space
-The implemented Markov chain is a model of user ?dynamics.?. we need to formulate an appropriate notion of a user state and to estimate the state-transition function
-**States represent relevant information about users in the form of ordered sequence of previous selections. Ignore data such as age, gender but it could be beneficial (through creating handcrafted features for such large domain variables)
-Problems arise: ?data sparsity and MDP solution complexity
-we consider only sequences of at most k items, for some relatively small value of k, an represented as vector of length k
-The initial state in theMarkov chain is the state in which every entry has the value missing
-use values of k from 1 to 5
-**transition funcion describes the probability that a user whose k recent selections were x1, . . . ,xk will select the item x? next
-Initially, this transition function is unknown to us
-a maximum-likelihood estimate can be used
+Authors argued that their previous work, based on a content-based approach, had experience the following drawbacks: (i) the personalized user rating model suffer of a semantic meaning between low-level audio features and high-level user preferences; (ii) it is difficult to determine which acoustic features are actually effective in the music recommendation scenario; and (iii) recommendation of songs under this approach lacks of variety due to most of them are acoustically similar. Therefore, they presented an approach based ........
 
-trMC(?x1,x2,x3?,?x2,x3,x4?)= count(?x1,x2,x3,x4?) / count(?x1,x2,x3)
-This model, however, still suffers from the problem of data sparsity and performs poorly in practice
+Recalling the definition of Matrix factorization in Section [***], this method characterizes users and songs by vectors of latent factors $\mathbf{u_i}$ and $\mathbf{v_j}$ respectively with $i \in [1, m], j \in [1, n]$. In order to learn the latent feature vectors, the system used equation \ref{eq:matrixFactorization} and Alternating Least Squares (ALS)[***] to minimize the regularized cost function on the training set:
 
+\begin{equation}
+\label{eq:matrixFactorization}
+\sum_{(i,j) \in I}(r_{ij}-\mathbf{u^T_i}\mathbf{v_j})^2 + \lambda (\sum_{i=1}^{m}n_{ui}\| \mathbf{u_i} \|^2 + \sum_{j=1}^{n}n_{vi}\| \mathbf{v_j} \|^2)
+\end{equation}
+where I is the index set of all known ratings, $\lambda$ a regularization parameter, $n_{ui}$ the number of ratings by user i, and $n_{vj}$ the number of ratings of song j. However, the traditional CF approach often fails to take into consideration novelty and works greedily.
 
+As a result, a reinforcement learning approach for CF-based music recommendation based on the n-arm bandit problem was proposed. The user rating model considered that song?s rating is affected by two factors: \textit{CF score}, (how much a user likes the song in terms of each CF latent factor) denoted by $U_{CF}$ and defined inn terms of matrix factorization, and \textit{novelty score} (the dynamically changing novelty of the song) denoted by $U_N$. Thus, the final user rating model, given in equation \ref{eq:UratingModel}, can be defined as a combination of the two scores, where vector $\theta$ indicates the user?s preferences for different CF latent factors, $\mathbf{v}$ is the song feature vector learned by the ALS CF algorithm, t is the time elapsed since when the song was last heard, s the relative strength of the user?s memory, and $e^{?t/s}$ the well-known forgetting curve. 
 
+\begin{equation}
+\label{eq:UratingModel}
+U=U_{CF}U_{N}=(\mathbf{\theta^Tv})(1-e^{-t/s})
+\end{equation}
 
+In the same way as in [***](previous paper), each user was associated with a pair of parameters $\ohm=(\mathbf{\theta},s)$ to be learned from the user's rating history, and their underlying ratings were considered random rather than fixed numbers (estimated using $\mathcal{E}[R_j] = U_j$). Exploration was also introduced by using both a similar Bayesian Upper Confidence Bound (UCB) sampling algorithm and Bayesian Graphical model to estimate the posterior distribution $p(U_j|\mathcal{D})$ of $U_j$ given the target user?s rating history $\mathcal{D}$, but in terms of the CF latent factors rather than audio content. Then, the song with the highest fixed-level \textit{quantile} value (equation \ref{}) of $p(U_j|\mathcal{D})$ will be recommended to the target user.
 
+%The graphical model used in [***12] and depicted in Figure \ref{}*** was adopted to estimate the posterior distribution of $U$, and which is defined as follows:
+%
+%\begin{equation}
+%\label{}
+%R|\mathbf{v},t,\mathbf{\theta},s,\sigma^2 \sim \mathcal{N}(mathbf{\theta}^T\mathbf{v}(1-e^{-t/s}), \sigma^2) \\
+%\end{equation}
+%
+%\begin{equation}
+%\label{}
+%\mathbf{\theta}|\sigma^2 \sim \mathcal{N}(\mathbf{0}, a_0\sigma^2\mathbf{I})
+%\end{equation}
+%
+%\begin{equation}
+%\label{}
+%s \sim \mathit{Gamma}(b_0, c_0)
+%\end{equation}
+%
+%\begin{equation}
+%\label{}
+%\tau=1/\sigma^2 \sim \mathit{Gamma}(d_0, c_0) 
+%\end{equation}
+%
+%where $\mathbf{I}$ is the $\mathit{f} \times \mathit{f}$ identity matrix, $\mathcal{N}$ represents the Gaussian distribution[***] and $\textit{Gamma}$
+%represents the Gamma distribution[***] with parameters shape and rate. $\mathbf{\theta}$, s, and $\tau$ are parameters, while $a_0$, $b_0$, $c_0$, $d_0$, and $e_0$ are hyperparameters of the priors
+%
+%During iteration $h+1$, the model has delivered h recommendations to the user's history $\mathcal{D}_h = \{(\mathbf{v_i},t_i,r_i)\}^h_{i=1}$ which posterior distribution can be defined using Bayes theorem as $p(\Omega|\mathcal{D}_h) \propto p(\Omega)p(\mathcal{D}_h|\Omega)$. They used their own implementation of the Gibbs sampling algorithm to speed-up convergence compared the Monte Carlo Markov Chain (MCMC)[***] algorithm to sample the user's parameters $\Omega=(\mathcal{\theta}, s)$ by sampling from a conditional distribution. Then, they used Eq. \ref{eq:expUserRatingSongj} to obtain a sample for $U_j$, and finally, the posterior Probability Density Function PDF $p(U_j,\mathcal{D})$ was approximated by the histogram of the samples of $U_j$.
+%
+%After estimating the posterior PDF for rating  each song, they used a Bayes-UCB approach to recommend song $\mathit{j}^*$ that maximizes the quantile function:
+%
+%\begin{equation}
+%\label{}
+%j^*=\arg\max_{j=1,...,|S|} \mathcal{Q}(\alpha, p(U_j,D_h))
+%\end{equation}
+%
+%where $\alpha=1-\frac{1}{h+1}$ and the quantile function $\mathcal{Q}$ returns a value \textit{x} such that $Pr(U_j \leq x|D_h)=\alpha$ 
 
+However, the efficiency of the convergence in the Bayesian inference of this approach was improved by developing a specific Gibbs sampling algorithm[***] as in this case it is simple to sample the ratings from the conditional distribution of $\mathbf{\theta}$, while, a Metropolis-Hastings (MH) algorithm[***] was used to draw samples of $s$. For a more detail explanation of the algorithms, please refer to sections 3.2 and 3.3 in [***](this paper).
 
+Efficiency experiments were carried out over to compare the developed sampling implementation and an MCMC algorithm developed in JAGS\footnote{\url{http://mcmc-jags.sourceforge.net/}}. The results showed that their proposed Gibbs sampling algorithm is hundreds of times faster than MCMC evidencing the suitability of the algorithm for online recommender systems. Additionally, an online user study which compared the effectiveness of the proposed Bayes-UCB-CF algorithm against the traditional greedy method and the previous implementation Bayes-UCB-Content[***](previous paper), proved that the cumulative average rating of new algorithm significantly outperformed the baselines. All in all, the Bayes-UCB-CF algorithm achieved a better balanced exploration/exploitation trade-off and significantly showed an improvement on its recommendation performance.
 
-**An MDP based recommender model
-MDP model that explicitly models the recommendation process and attempts to optimize it. The predictive model plays an important role in the construction of this model
-The predictive model provides the probability the user will purchase a particular item x given that her sequence of past purchases is x1, . . . ,xk
-We denote this value by Prpred(x|x1, . . . ,xk), where k = 3 in our case
+In conclusion, this first attempt to remedy the greedy nature of CF approaches could enhance the performance of CF-based music recommendation significantly. Moreover, the reinforcement learning model seems to be applicable to other contexts different from the music environment, as well as it could be deployed together with the content-based RL model from [***](previous paper) in order to build a hybrid framework which combines the strengths of both approaches. 
 
-states: k-tuples of items
-actions: correspond to a recommendation of a single item.
-Rewards: depends on the last item defining the current state only. we use net profit for reward
+\textbf{Generating Music Playlists with Hierarchical Clustering and Q-Learning}
 
-The state following each recommendation is determined by the user?s response to that recommendation. the user has three options:
-Accept this recommendation, thus transferring from state ?x1,x2,x3? into ?x2,x3,x'? 
-Select some non-recommended item x'', thus transferring the state ?x1,x2,x3? into ?x2,x3,x''?.
-Select nothing (for example, when the user terminates the session), in which case the system remains in the same state.
+\textbf{DJ-MC: A Reinforcement-Learning Agent for Music Playlist Recommendation}
 
-transition function: the stochastic element in our model is the user?s actual choice
-tr1 MDP(?x1,x2,x3?,x',?x2,x3,x''?) is the probability that the user will select item x?? given that item x? is recommended in state ?x1,x2,x3?
+\textbf{Hybrid Collaborative Filtering with Neural Networks}
 
-A for-profit e-commerce8 site is unlikely to use a recommender system that generates irrelevant recommendations for a long period, while waiting for it to converge to an optimal policy. We therefore need to initialize the transition function carefully. We can do so based on any good predictive model
-
-need to initialize the transition function carefully. using the following assumptions
--A recommendation increases the probability that a user will buy an item. This probability is proportional to the probability that the user will buy this item in the absence of recom- mendations
-We denote the proportionality constant for recommendation r in state s by ?s,r, where ?s,r >1
--The probability that a user will buy an item that was not recommended is lower than the probability that she will buy when the system issues no recommendations at all
-We denote the proportionality constant for recommendation r in state s by ?s,r, where ?s,r <1
-
-
-We use trpredict(s,s � r) to denote the probability that the userwill choose r next, given that its current state is s according to the predictive model in which recommendations are not considered, that is, Prpred(r|s)
---copy transition probability functions page 16
-
-we can represent this transition function concisely using at most two values for every state-item pair
-Because the number of items is much smaller than the number of states, we obtain significant reduction in the space requirements of the model.
-
-Our state space enjoys a number of features that lead to fast convergence of the policy iteration algorithm:
--Transitions in our state space seem to have inherent directionality
--We have also found that the computation of an optimal policy is not heavily sensitive to variations in k?the number of past transactions we encapsulate in a state. As k increases, so does the number of states, but the number of positive entries in our transition matrix remains similar.
-
-policy evaluation still requires much effort given the large state and action space we have to deal with. To alleviate this problem we resort to a number of approximations:
--ignoring unobserved states by just we maintain transition probabilities only for states for which a transition occurred in our training data. if the sequence ?x,y,z? did not appear in the training data, we do not calculate a policy for it and assume its value to be R(z)?the reward for the last item in the sequence
-When a recommendation must be generated for a state that was not encountered in the past,
-we compute the value of the policy for this state online. This requires us to estimate the transition probabilities for a state that did not appear in our training data using the techniques of skipping, clustering, and finite mixture of unigram, bigram, and trigrams
--using the independence of recommendations At each iteration, we compute the best action for each state s ? that is, the action satisfying:
-maybe copy function page 19 formula 24
-
-**Updating the model online
-One approach is to use some form of reinforcement learning but the implementation requires many calls and computations by the recommender systemonline, which will lead to slower responses?an undesirable result. A simpler approach is to perform off-line updates at fixed time intervals
-
-In particular, the system does not recommend
-items that are likely to be bought whether recommended or not, but rather recommends items whose likelihood of being purchased is increased when they are recommended
-Approach used: The site need only keep track of the recommendations and the user selections and, say, once a week use those statistics to build a new model
-
-formulas 29-36
-
-prior to updating the model, the system is not able to recommend those new items (the well-known ?cold start? prob- lem(Good et al., 1999) in recommender systems)
-
-In our implementation,when the first transition to a state s � r is observed, its probability is initialized to 0.9 the probability of the most likely next item in state s with ?s =10. This approach causes the new items to be recommended quite frequently
-
-the system needs to recommend non-optimal items occasionally in order to get counts for those items. The systembalances the need to explore unobserved options in order to improve its model and the desire to exploit the data it has gathered so far in order to get rewards
-In our implementation we use a list of three recommendations where the first one is always the optimal one, but the second and third items are selected using the Boltzman distribution without a cutoff
-
-
-Weaknesses of our predictive (Markov chain) model include the use of ad hoc weighting func-
-tions for skipping and similarity functions and the use of fixed mixture weights
-Learning the weighting functions and mixture weights from data should improve calibration
-
-
-\textbf{A Hybrid Web Recommender System Based on Q-Learning} we exploit this idea to enhance a reinforcement learning framework,
-primarily devised for web recommendations based on web usage data
-show the apt and flexibility of the reinforcement learning framework in the web recommendation domain and demonstrate how it can be extended in order to incorporate various sources of information.
-
-Web mining discover user preferences from their implicit feedbacks, namely the web pages they have visited
-
-In this paper we exploit this idea to enhance a reinforcement learning solution, we had devised for web recommendations based on web usage data [16].
-but this method suffers from the problems commonly faced by other usage-based techniques
-
-To address these problems, we made use of the conceptual relationships among web pages and derived a novel model of the problem, enriched with semantic knowledge about the usage behavior
-Then we came up with new definitions for our states, actions and rewarding functions which
-capture the semantic
-implications of users browsing behavior
-shows the flexibility of the reinforcement learning framework for the recommendation problem and how it can be extended to incorporate other sources of information.
-
-\textbf{Improving adaptation of ubiquitous recommander systems by using reinforcement learning and collaborative filtering} Inspired by models of human reasoning developed in robotic, we combine reinforcement learning and case-based reasoning to define a \textbf{contextual} recommendation process based on different context dimensions (cognitive, social, temporal, geographic). This paper describes an ongoing work on the implementation of a CBRS based on a hybrid Q-learning (HyQL) algorithm which combines Q-learning, collaborative filtering and case-based reasoning techniques.
-
-When applying techniques to adapt a recommender system to the user, major difficulties for ensuring the user acceptance follow
--Avoiding the intervention of experts: experts are not completely sure of the user?s interest
-A slow learning process: the system?s learning process about the user?s interests has to be fast enough to avoid bothering the user with incorrect recommendations.
--The evolution of the user?s interest: The system has to be continuously adapted to this dynamicity using the user?s context information to provide the relevant recommendations because, if the system?s behavior is incoherent, the user refuses it quickly.
-
-The system?s learning process has to be fast to adequately follow the evolution of the user?s interest
-
-the recommender system starts with a predefined set of actions, not defined by an expert, but by the user?s social group (in the scenario we talk about job teams).
-Then, the system is progressively adapted to a particular user using a learning lifelong process. Thus, the system is, at first, only acceptable to the user, and will, as time passes, give more and more satisfying results
-
-Avoiding the intervention of experts: in [8, 24] the authors use Reinforcement Learning (RL) because it does not need previous experiences to start work. However, a major difficulty when applying RL techniques to real world problems is their slow convergence.
-
-Paper proposes to address the following problems that came out in recommender systems
--Avoiding the intervention of experts: we propose to use the Q- learning algorithm which does not need initial user?s information.
--Reducing cold start problem: we give Q-learning algorithm the ability to explore the knowledge of other users belonging to the same social network by using CF.
--Accelerating the learning process: to accelerate the Q-learning process, we mix Q-learning with case-based reasoning techniques to allow the reuse of cases and faster satisfy the user.
--Adapting to the user?s interest evolution: we propose to use CF with an exploration strategy to follow the user?s interest evolution.
-
-The proposition is based on three main algorithms
-
--Reinforcement learning and Q learning algorithm
-In the Q-Learning algorithm, for every state s, action a = Q (s) is chosen according to the current policy. The choice of the action by the policy must ensure a balance between exploration and exploitation phase
-
-There are several strategies to make the balance between exploration and exploitation. Here, we focus on two of them: the greedy strategy chooses always the best action from the Q-table, i.e. uses only exploitation; the ?-greedy strategy adds some greedy exploration policy, choosing a random action at each step if the policy returns the greedy action (probability = ?) or a random action (probability = 1 - ?).
-
--Collaborative Filtering
-Given a set of transactions D, where each transaction T identified by id is of the form <id, item, rating>, a recommender model M is produced. Such a model M can produce a list of top-N recommended items, and corresponding predicted ratings, from a given set of known ratings
-In terms of CF, three major classes of algorithms exist: Memory- based, Model-based and Hybrid-based [1, 4]. Memory-based approaches identify the similarity between two users by comparing their ratings on a set of items and have suffered from two fundamental problems: sparsity and scalability. Alternatively, the model-based approaches have been proposed to improve these problems, but these approaches tend to limit the range of users. In our work, we use the Hybrid-based approach which combines
-the advantages of these two kinds of approaches by joining the two methods. Firstly, we employ memory-based CF to fill the vacant ratings of the user-item matrix. Then, we use the item- based CF as model-based to form the nearest neighbors of each item
-
--Case-based reasoning
-Case based reasoning (CBR) uses knowledge of previous situations (cases) to solve new problems, by finding a similar past case and reusing it in the new problem situation.
-According to [11], solving a problem with CBR involves ?obtaining a problem description, measuring the similarity of the current problem to previous problems stored in a case base with their known solutions, retrieving one or more similar cases, and attempting to reuse the solution of the retrieved case(s), possibly after adapting it to consider differences in problem descriptions?.
-
--The Hybrid Q-learning algorithm
-Q-learning Improved by 
-Reusing past cases information: to accelerate the Q-learning algorithm, we propose to integrate CBR into each iteration. Before choosing the best action, the algorithm computes the similarity between the present case and each one in the case base and, if there is a case that can be reused, the algorithm retrieves and adapts it.
-Using social groups: to give the Q-Learning the ability to use information from other users sharing the same interests, we propose to extend the ?-greedy strategy replacing the random action by another one that is selected computing the similarity of user profiles applying the CF algorithm as indicated in equation 2 where q is a random value uniformly distributed over [0, 1] and p (0?p?1) is a parameter that defines the exploration/exploitation tradeoff: the larger is p, the smaller is the probability of executing a random exploratory action. a social group is an action chosen among those
-
-**Global mechanism. Figure 1
-implementation of a context-based recommender system (CBRS) which uses the HyQL algorithm
-The sensing module detects time, location, cognitive and social dimensions of the context in the following way
--The cognitive dimension is given by all the actions of the user
--The social group is predefined for each user
--Time is detected by the user?s phone and the calendar of his/her institution.
--The geographic dimension is detected by the user?s GPS
-
-In the thinking module, the abstraction phase is based on inference rules (e.g. specification / generalization) defined on the temporal and/or space ontologies
-The aggregation phase is the combination of the two dimensions time and location
-The reasoning module chooses an action to deliver at each situation. 
-The reasoning module is controlled by each of the previously presented algorithms: Q-Learning and HyQL
-
-Evaluation
-comparing Q-learning and HyQL w.r.t. solving the cold start problem
-The experiment consists of testing the first 100 trials of the system starting when the user is connected to the system. During the trials, the system has to recommend one resource from the database
-To evaluate each trial, we use the traditional precision measure
-In general, the precision of HyQL is greater than the precision of Q- Learning, except for trials number 50 where they have the same value
-
-\textbf{ENHANCING COLLABORATIVE FILTERING MUSIC RECOMMENDATION BY BALANCING EXPLORATION AND EXPLOITATION} this work is based on a content-based approach, introduce exploration into CF and try to balance between exploration and exploitation. The approach uses a Bayesian graphical model that takes account of both CF latent factors and recommendation novelty. Moreover, they designed a Bayesian inference algorithm to efficiently estimate the posterior rating distributions.
-
-Carried out both simulation experiments and a user study to show the efficiency and effectiveness of the proposed approach. Experimental results showed that our proposed approach
-enhances the performance of CF-based music recommen- dation significantly
-
-With the appropriate amount of exploration, the recommender system could gain more knowledge about the user?s true preferences before exploiting them.
-
-They introduce exploration into collaborative filtering by formulating the music recommendation problem as a reinforcement learning task called \textit{n-armed bandit problem}. 
-
-Compared to an off-the-shelf MCMC algorithm, a much more efficient sampling algorithm is proposed to speed up Bayesian posterior estimation
-
-A Bayesian graphical model taking account of both collaborative filtering latent factors and recommendation novelty is proposed to learn the user pref- erences
 \section{Deep Reinforcement Learning}
 
-% This just dumps some pseudolatin in so you can see some text in place.
-% \blindtext
+\textbf{Human-level control through deep reinforcement learning}
+
+\begin{equation}
+\label{}
+\end{equation}

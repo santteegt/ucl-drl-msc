@@ -1,5 +1,25 @@
-\chapter{My Second Content Chapter}
+\chapter{Models}
 \label{chapterlabel3}
 
-% This just dumps some pseudolatin in so you can see some text in place.
-\blindtext
+\section{Na\"{i}ve Model using Matrix Factorization}
+
+
+
+\subsection{Reinforcement Learning model}
+
+The model is defined as a Model-free approach which its main objective is to find the optimal policy which maximizes the total future reward
+
+\textit{State space:} is the set of items recommended to the user
+
+\textit{Action space:} are the single items recommended at each timestep
+
+\textit{Value function:} rating feedback received after giving a recommendation.
+
+
+%At each timestep, $\theta$ is updated with the latest latent factors learned.
+
+At current iteration h+1, we have gathered h observed recommendation history Dh = {(vi, ti, ri)}h
+i=1.
+Collect user rating rh and update p(? | Dh)
+
+

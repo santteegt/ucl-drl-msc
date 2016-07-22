@@ -52,12 +52,16 @@ If for each state the best action is taken according to the estimated value func
 
 An MDP is a model for sequential stochastic decision problems where an autonomous agent is influencing its surrounding environment through actions
 
+For categorizing RL agents, base the writing on the definition of approaches to approximate the optimal policy in \textbf{DJ-MC: A Reinforcement-Learning Agent for Music Playlist Recommendation}
+
 Q-Learning in which values are estimated for each state and action combination
 
 Exploration/Exploitation
 exploitation corresponds with the generation of trust and the exploration with the presentation of new and unexpected items
 
 the exploitation makes the behavior of the users more predictable, making estimates of the values more reliable. The exploration makes sure that the users have a chance to visit all pages, since it allows for all alternatives to be tried
+
+
 
 \section{Recommender Systems and Reinforcement Learning}
 
@@ -326,8 +330,114 @@ Efficiency experiments were carried out over to compare the developed sampling i
 In conclusion, this first attempt to remedy the greedy nature of CF approaches could enhance the performance of CF-based music recommendation significantly. Moreover, the reinforcement learning model seems to be applicable to other contexts different from the music environment, as well as it could be deployed together with the content-based RL model from [***](previous paper) in order to build a hybrid framework which combines the strengths of both approaches. 
 
 \textbf{Generating Music Playlists with Hierarchical Clustering and Q-Learning}
+%describes a system that uses reinforcement learning over hierarchically-clustered sets of songs to learn a user?s listening preferences for a Automatic Playlist Generation (APG),
+%
+%recommendation algorithms focus on discovery, whereas APG tends to be more concerned with coherence within a set of ordered tracks
+%
+%The approach we have taken is to use CB methods to inform an unsupervised machine learning algorithm (Q-learning), which over time can learn fromimplicit user feedback to generate playlists which are personalised to different listeners
+%
+%Features extracted from the audio are also used as part of this process
+%solution that does not rely on tagged audio files from any data source or any external services to achieve a completely personal and independent music player.
+%
+%The playermonitors the user?s actions continuously using reinforcement learn-
+%ing and updates its matrices based on user behaviour. Using implicit user be- haviouronly, ourplayeris able to learn user preferences providing users with a better music listening experience
+%
+%
+%the aim is to create playlists from individual songs and learn the proba- bilities of transitioning between them ($n^2$ transitions for a library of n songs)
+%the solution is to first cluster the songs, and then learn transitions between these clusters
+%
+%The solution we propose is therefore to use hierarchical clusters, in which
+%atree of clustersisconstructed using k-means clustering, and Q-learning (ex- plained below) is performed on nodes at multiple levels. This keeps the benefits of clustering without introducing large transition matrices or large groups of
+%songs to choose between. In fact, this reduces the space complexity from O(n2) to just O(n).
+%
+%**learning from user behavior
+%
+%This is known as active learning
+%The MDP was defined as follows: set of states S corresponds to the set of clusters, and not the individual songs
+%we will need one model per node in the tree, with S being only the node?s child clusters
+%
+%the model-free Q-learning was used to compute the expected utility of taking a particular action a
+%In the music player, the agent does actually know
+%S, since this is just a deterministic function in which a1 means ?transition to s1?, a2??transition to s2?, and so on. 
+%
+%However, R is clearly unknown because the rewards are assigned by the user.
+%
+%Having the transition matrix P
+%
+%\begin{equation}
+%\label{}
+%P^'_{r, c} = P_{r, c} + \alpha_t \times [R_t + \gamma_a P_{c, a} - P_{r, c}]
+%\end{equation}
+%
+%$\apha$ and R are functions which may depend on other parameters including the current song choice
+%
+%Q-learning algorithms often iterate within ?episodes? until local convergence
+%is reached. This method doesn?t apply well to the music player scenario, so instead there is just one update per user action. This reflects that rather than having a single clear goal for which an optimum path must be found, we are continually trying to find good states and may continue indefinitely. So there are no absorbing states in the MDP, and its transition graph may contain loops.
+%
+%Reward calculation scheme
+%takes values between -1,1 based on a linear interpolation of the time the user listened the song.
+%The basic measure of implicit reward is listening time,
+%This leads us to r = ?1.0 as the greatest negative reward for a skip after 0 seconds, and r =1.0 as the greatest positive reward for not skipping at all
+%So a track finishing is just a special case of this general rule, and we interpolate
+%linearly between the two reward extremes based on how far through the track we got to before the skip
+%whenever a track is skipped quickly, the previous song should be treated as the current track when future rewards are calculated.
+%
+%Also, the small rewards
+%should only be applied for smaller playlists since
+%
+%
+%**conclusions
+%perform well in a small user study, greatly reducing the relative number of songs that a user skips.
 
-\textbf{DJ-MC: A Reinforcement-Learning Agent for Music Playlist Recommendation}
+\textbf{DJ-MC: A Reinforcement-Learning Agent for Music Playlist Recommendation} considered a music recommendation framework for recommending song sequences using a reinforcement learning approach which models the preferences of both songs and song transitions as a MDP. The model-free agent demonstrated to be potentially effective in the domain and particularly good to solve the cold-start problem as it is able to generate personalized song sequences within a single listening session of 25-50 songs and with no prior knowledge of the new user's preferences.
+
+Assuming a finite set of n musical tracks $\mathcal{M} = \{a_1, a_2, ..., a_n\}$ and playlists of length k, the adaptive playlist generation problem is defined as an episodic MDP $\langle S, A, P, R, T \rangle$ with the following components:
+
+\begin{itemize}
+\item a state space S composed by the ordered sequence of songs played, $S = \{(a_1, a_2, ..., a_i)|1 \leq i \leq k; \forall j \leq i, a_j \in \mathcal{M}\}$
+\item an actions space A formed by all possible candidates for being the next song to play, $a_k \in A$ which means $A = \mathcal{M}$
+\item a deterministic transition function $P(s, a) = s'$ which indicates the existing transitions from state s to s' by taking action a
+\item an utiliy function R(s, a) derived from hearing song a when in state s
+\item $T = \{(a_1, a_2, ..., m_k)\}$: the set of playlists of length k.
+\end{itemize}
+
+In order to find an optimal policy $\pi*$ which obtains the most pleasing sequence of songs to the listener, a model-based approach was chosen arguing that even though model-free approaches learn the value of taking an action a from state s directly, it requires a lot of data to converge, and it is considerably scarce in the domain music recommendation (as well as in other kind of applications). On the other hand, model-based formulations often requires a lot of computation to find an approximate solution to the MDP, but the trade-off of computational expense for data efficiency makes the model-based approach a good option for this problem.
+
+Therefore, since P is deterministic, only the listener?s reward function R required to be modeled. It was compactly represented as the sum of two distinct components: 1) the listener?s preference over songs, $R_s : A \rightarrow \mathcal{R}$ and 2) her preference over transitions from songs played to a new song, $R_t : S \times A \rightarrow \mathcal{R}$. Hence, R was defined using equation \ref{eq:Rdecomposed}.
+
+\begin{equation}
+\label{eq:Rdecomposed}
+R(s, a) = R_s(a)+R_t(s, a)
+\end{equation}
+
+In essence, the model represent each song as a vector of spectral auditory descriptors, however, the framework is in principle robust and agnostic to the choice of a specific song corpus. First, the listener reward (linear) function over songs $R_s$ generates a binary feature vector using a sparse encoding of the song descriptors as $R_s(a) = \phi_s(u) \cdot \theta_s(a)$, where $\phi_s(u)$ represents the listener pleasure for a particular set of active features. Then, the listener reward (linear) function over transitions $R_t$ obtains a sparse binary feature vector $R_t(a_i, a_j) = \phi_t(u) \cdot \theta_t(a_i, a_j)$, where $\phi_t(u)$ is a user-dependent weight vector and $\theta_t$ is a binary feature vector, with both representing transitions between 10-percentile bins of the song descriptors they share (for learnability purposes). An evaluation on the expressiveness of feature representation showed that different sequences are indeed distinguishable. As a result, the compact representation of songs was still rich enough to capture meaningful differences in user's preferences, and the system was able to leverage knowledge using a few transition examples to plan a future sequence of songs.
+
+On the other hand, the agent architecture is composed by two submodules: a module for learning the listener parameters ($\phi_s$ and $\phi_t$) which performs the initialization and learning on the fly processes; and a module for planning a sequence of songs and thus estimate the next appropriate song to play. The initialization is divided in two parts: 1) the initialization of the song preferences polls the listener for her $k_s$ favorite songs in the database and then update the value $\phi_s(u)$ using the feature descriptors of each of the selected items; and 2) the initialization of the transition preferences based on presenting different possible transitions that encapsulate the variety in the dataset, and directly asking which of a possible set of options the listener would prefer. Updates to the user feature vector $\phi_t(u)$ are carried out in the same manner as the initialization of song preferences.
+
+After initialization, the agent begins playing songs for the listener, waiting for her feedback, and updating $\phi_s$ and  $\phi_t$ accordingly. The latter is computed by using a single unified reward signal that considers the relative contributions of the song and transition rewards to set weights (equations \ref{eq:w_s} and \ref{eq:w_t}) for credit assignment (equations \ref{eq:phis} and \ref{eq:phit}). In general, the learning of the fly procedure is perceived as a temporal-difference update with an attenuating learning rate that balances the trust  between the previous history of observations and the newly obtained signal.
+
+\begin{equation}
+\label{eq:w_s}
+w_s = \frac{R_s(a_i)}{R_s(a_i) + R_t{a_{i-1}, a_i}}
+\end{equation}
+\begin{equation}
+\label{eq:w_t}
+w_t = \frac{R_t(a_{i-1}, a_i)}{R_s(a_i) + R_t(a_{i-1}, a_i)}
+\end{equation}
+\begin{equation}
+\label{eq:phis}
+\phi_s = \frac{i}{i+1} \cdot \phi_s + \frac{i}{i+1} \cdot \theta_s \cdot w_s \cdot r_{incr}
+\end{equation}
+\begin{equation}
+\label{eq:phit}
+\phi_t = \frac{i}{i+1} \cdot \phi_t + \frac{i}{i+1} \cdot \theta_t \cdot w_t \cdot r_{incr}
+\end{equation}
+
+After determining the MDP reward function, a Monte Carlo Tree Search[***] (MCTS) heuristic is used for planning. The process chooses a subset of 50 \% of the songs in the database with highest $R_s$ score, and then at each point, it simulates a trajectory of future songs selected at random  (instead of asking the user her top-k songs) and calculate the expected payoff of the song trajectory using $R_s$ and $R_t$. This iterative process ends when it finds the trajectory which yields to the highest expected payoff. Finally, the first item of this trajectory is selected to be the next song.
+
+However, a re-planning must run at every step as the system actively adjusts $\phi_s$ and $\phi_t$ online based on user feedback. It could arise a problem of high complexity when the song space is very large. Therefore, to mitigate the problem, the agent exploits the structure of the song space by clustering songs according to song types. The solution is implemented using the canonical k-means algorithm (but any clustering algorithm could work) and results on a radical reduction of search complexity.
+
+An evaluation of the cumulative reward distribution of the proposed approach against two baselines (a random agent and a greedy agent) showed that overall, the DJ-MC agent outperforms both random and greedy agents, while in terms of adding the transition reward preferences into the model, the new system presented a small but significant boost in performance compared to a model based only on reasoning about song preferences. All in all, this approach demonstrated to be a good improvement as a reinforcement learning model for music recommendation, as it enables learning from relatively few examples, and the representation captures enough of real peoples? transition reward to provide quality of recommendation sequences.
 
 \textbf{Hybrid Collaborative Filtering with Neural Networks}
 

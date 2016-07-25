@@ -13,18 +13,35 @@
 
 ## Overview ###
 
-## System Requirements and Setup
+.. contents:: **Contents of this document**
+   :depth: 2
 
-### Dependencies
+System Requirements and Setup
+======
 
-### Installation
+- `Python 2.7`
+- `Virtualenv`
+- `Tensorflow`
+- `Jupyter notebook`
+
+
+Dependencies
+======
+
+Installation
+======
 
 ```bash
 git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git
 git submodule update --init --recursive
 
+cd ucl-cfdrl-msc
+
+
 ```
 
-## Running the environment
+Running the environment
+======
 
-## License and Version
+License and Version
+======

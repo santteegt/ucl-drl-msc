@@ -3,26 +3,50 @@
 
 \section{Recommender Systems}
 
-use background patterns of \textbf{An MDP-Based Recommender System} 
+**References to papers are temporarily described with their title in order to facilitate the identification of the source, but they will be replaced later with proper latex references
 
-\subsection{Matrix Factorization}
+In recent years, there has been growing focus on the study of Recommender Systems (RSs) where different techniques have been published in order to to address the problem of information overload on the Internet. Consequently, the evolution of RS and the web usually go hand-in hand. Resnick and Varian[***]  defined a RS as a system that help users limit their search by supplying a list of items that might interest a specific user. It has found an active application area for diverse Information Retrieval, Web Mining and Machine Learning techniques that help to solve typical recommendation problems problems. Additionally,  different RS mechanisms have been categorized depending on the way they analyze the data sources to find affinities between users and items. 
 
-In a recommendation system such as Netflix or MovieLens, there is a group of users and a set of items (movies for the above two systems). Given that each users have rated some items in the system, we would like to predict how the users would rate the items that they have not yet rated, such that we can make recommendations to the users
+The most general setting in which recommender systems are studied is presented in Figure \ref{fig:iomatrix}. Having a rating matrix of n users and m items representing the current user preferences, the task of a RS is to predict all missing ratings $r_{a,i}$ for the active user a, and then recommend the item(s) with the highest rate[***](Recommender Systems). However the user ratings matrix is typically sparse, as most users do not rate most items. Different approaches to solve this task can be categorized into the following types:
 
-the task of predicting the missing ratings can be considered as filling in the blanks such that the values would be consistent with the existing ratings in the matrix.
+\begin{itemize}
+\item \textit{Collaborative Filtering (CF):} in CF systems, a user is recommended items based on the past ratings of all users collectively
+\item \textit{Content-based recommending(CB):} recommend items that are similar in content to items the user had liked in the past, or matched to pre-defined attributes of the user.
+\item \textit{Hybrid approaches:} these methods combine both CF and CB approaches.
+\end{itemize}
 
-The intuition behind using matrix factorization to solve this problem is that there should be some latent features that determine how a user rates an item. Hence, if we can discover these latent features, we should be able to predict a rating with respect to a certain user and a certain item, because the features associated with the user should match with the features associated with the item.
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.9]{images/uimatrix}
+\caption{Typical user ratings matrix, where each cell $r_{u,i}$ corresponds to the rating of user u for item i.}
+\label{fig:iomatrix}
+\end{figure}
 
-In trying to discover the different features, we also make the assumption that the number of features would be smaller than the number of users and the number of items
+\subsection{Collaborative Filtering} 
 
-we have a set U of users, and a set D of items. Let $\mathbf{R}$ of size $|U| \times |D|$ be the matrix that contains all the ratings that the users have assigned to the items. Also, we assume that we would like to discover K latent features. Our task, then, is to find two matrics matrices $\mathbf{P}$ (a $|U| \times K$ matrix) and $\mathbf{Q}$ (a $|D| \times K$ matrix) such that their product approximates $\mathbf{R}$:
+CF systems work by collecting user feedback in the form of ratings for items and exploiting similarities amongst several users. To build a user?s neighborhood, these methods initially rely on a database of past users interactions which can be stored in the form of explicit ratings (e.g., 5 stars to a great movie, 1 star to a bad one), or implicit ratings (e.g. a song played by a user, or an item bought by her). In general, CF methods are subdivided into memory-based and model-based approaches.
+
+\subsubsection*{Memory-based CF}
+
+Items are recommended to an active user using a weighted combination of ratings in a subset of users chosen based on their rating similarity to the target user. The most commonly used measure of similarity is the Pearson correlation coefficient[***] (GroupLens: An open architecture for collaborative fil- tering of netnews) which measures the extent to which there is a linear dependence between the ratings of two users. Alternatively, the ratings of two users can be represented as a vector in an m-dimensional space and compute their similarity based on the cosine similarity between them. Previous studies[***] (Empirical analysis of predictive algorithms for collaborative filtering) found that the former generally performs better for predicting user recommendations.
+
+These Memory-based CF methods have been extended and improved over the years. Linden, Smith, and York[***]( Amazon.com recommendations: Item-to-item collaborative filtering) proposed an \textit{Item-based CF} (or item-item CF) method to overcome the problem of dimensionality found when conventional memory-based algorithms are applied find similarities between millions of users and items and thus cannot scale well. This approach, which matches a user?s rated items using Pearson correlation of items, lead to faster online systems and improved recommendations (Linden et al., 2003)[***]
+
+\subsubsection*{Model-based CF}
+
+Model-based CF provides recommendations by estimating parameters using statistical models for user ratings. The most widely used models are Bayesian classifiers, neural networks, fuzzy systems, genetic algorithms, latent features and matrix factorization[***]{Recommender Systems survey}. For instance, the CF can be turned into a classification problem, where a classifier is built for each active user representing items as features over users and available ratings as labels. However, latent factor and matrix factorization models have emerged as a state-of-the-art methodology in this class of techniques[***] (Matrix factorization techniques for recommender system).
+
+\subsubsection*{Matrix Factorization}
+\label{sec:matrixFactorization}
+
+To reduce the high levels of sparsity in RS databases, matrix factorization in conjunction with dimensionality reduction techniques have been used. Having a sets U of users, and a set D of items, let $\mathbf{R}$ of size $|U| \times |D|$ be the matrix that contains all the ratings that the users have assigned to the items. Assuming that we would like to discover K latent features, the task is to find two matrices $\mathbf{P}$ (a $|U| \times K$ matrix) and $\mathbf{Q}$ (a $|D| \times K$ matrix) such that their product approximates $\mathbf{R}$:
 
 \begin{equation}
 \label{}
 \mathbf{R} \approx \mathbf{P} \times \mathbf{Q^{T}} = \hat{\mathbf{R}}
 \end{equation}
 
-Each row of $\mathbf{P}$ would represent the strength of the associations between a user and the features. Similarly, each row of $\mathbf{Q}$ would represent the strength of the associations between an item and the features. We have to find a way to obtain $\mathbf{P}$ and $\mathbf{Q}$. One way to approach this problem is the first intialise the two matrices with some values, and calculate how 'different? their product is to $\mathbf{M}$ by using gradient descent with a regularization term in order to find the minimum difference between $\mathbf{R}$ and the predicted preference matrix $\mathbf{\hat{R}}$ (using the MSE).The update rules and the cost function are defined as follows:
+Each row of $\mathbf{P}$ would represent the strength of the associations between a user and the features. Similarly, each row of $\mathbf{Q}$ would represent the strength of the associations between an item and the features. One way to obtain $\mathbf{P}$ and $\mathbf{Q}$ is to first initialize both matrices with some values, and calculate how different their product is to $\mathbf{M}$ by using gradient descent with a regularization term in order to minimize the difference between $\mathbf{R}$ and the predicted preference matrix $\mathbf{\hat{R}}$ (e.g using the Mean Square Error). The update rules and the cost function are defined as follows:
 
 \begin{equation}
 \label{}
@@ -39,35 +63,134 @@ q^{'}_{kj}=q_{kj}+\alpha\frac{\partial}{\partial q_{kj}}e^{2}_{ij}=q_{kj}+\alpha
 e^2_{ij}=(r_{ij}-\hat{r{ij}})^2=(r_{ij}-\sum_{k=1}^{K}p^{'}_{ik}q^{'}_{kj})^2
 \end{equation}
 
+Another model-based technique combines Latent Semantic Index (LSI) and the reduction method Singular Value Decomposition (SVD) are typically to solve the same problem[***](Using singular value decomposition approximation for collaborative filtering). Although SVD methods provide good prediction results, it is computationally very expensive, therefore it might be only efficient in static off-line settings.
+
+\subsection{Content-based RS}
+
+This method compared to pure CF that only utilizes the user rating matrix, tries to make a better personalized recommendation by exploiting the knowledge about a user, such as demographic information, or about the properties of item (e.g. genre of a movie). Several approaches have treated this problem as an information retrieval (IR) task, where the content associated with the user?s preferences is treated as a query, and the unrated items are scored with relevance/similarity to this query[***](Fab: Content-based, collaborative recommendation.). Alternatively, CB-RS has also been treated as a classification task using algorithms such as k-Nearest Neighbors (k-NN), decision trees, and neural networks[***](Learning and revising user profiles: The identification of interesting web sites. Machine Learning)
+
+\subsection{Hybrid approaches}
+
+In order to leverage the strengths of both CB-RS and CF, there have been several hybrid approaches proposed. For instance, Melville et al. in [***](Content-boosted collaborative filtering for improved recommendations) presented a general framework for content-boosted collaborative filtering, where content-based predictions are applied to convert a sparse user ratings matrix into a full ratings matrix, and then a CF method is used to provide recommendations. In essence, this approach has been shown to perform better than pure CF, pure CB-RS, and a linear combination of the two.
+
+\subsection{The cold-start problem}
+
+The cold-start problem is a common issue that happens in recommender systems when it is not possible to make reliable recommendations due to an initial lack of ratings. There are three kinds of known cold-start problems: new community, new item and new user[***](Recommender Systems survey). However, the latter represents one of the greatest difficulties faced by an RS in operation. Since new users have not yet provided any rating in the RS, they cannot receive any personalized recommendations based on memory-based CF. Usually, when the users enter their firsts ratings they expect the RS to offer them personalized recommendations, but there are not enough ratings yet to be able to make reliable CF-based recommendations. As a consequence, new users feel that the RS does not offer the service they expected.
+
+This problem is often faced using hybrid approaches such as CF-content based RS, CF-demographic based RS, or CF-social based RS[***](Recommender Systems survey.) Those methods can also be combined with clustering techniques over items in order to improve the prediction quality.
+
+\subsection{Trends in Recommendation Systems}
+
+Latest studies in CF showed that combining conceptual (explicit) and usage (implicit) information can improve the quality of web recommendations. Bobadilla et al.[***] presents a taxonomy for RS which unifies the current recommender methods and algorithms that can be applied to incorporate memory-based, social and content-based information into their CF system depending on the information type available. Additionally, the taxonomy depicted in Figure \ref{fig:taxonomy}, incorporates at its higher levels the current evaluation methods for RS in terms of quality measures, diversity and novelty.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.8]{images/taxonomyrs}
+\caption{Recommender System taxonomy. Source: Bobadilla et al. [***](Recommender Systems survey)}
+\label{fig:taxonomy}
+\end{figure}
+
+Moreover, Bobadilla et al. argue in [***](Recommender Systems Survey) that the most widely used algorithm for CF is the kNN. In general, kNN executes the following three tasks to generate recommendations for an active user a: (1) determine k users neighbors; (2) implement an aggregation approach with the ratings for the neighborhood in items not rated by a; and (3) select the top N recommendations from predictions obtained in step 2.
+
+Most recent research, like [***](Collaborative Deep Learning for Recommender Systems), make a generalization of recent advances in Deep Learning[***](Representation Learning: A Review and New Perspectives) from Identically and Independently Distributed (i.i.d.) input and generalize it to the non-i.i.d. (CF-based) input, and propose hierarchical Bayesian models that jointly performs deep representation learning for the content information and CF for the ratings matrix. On the other hand, [***](Collaborative Denoising Auto-Encoders for Top-N Recommender Systems) propose a Collaborative Deep Auto Encoders (CDAE) model which formulates the top-N recommendation problem using the Denoising Auto-Encoder framework to learn the latent factors from corrupted inputs. Experiments carried out over different domains have shown that the two Deep Learning approaches can significantly outperform the state of the art. Therefore, current research has been focusing on using deep representational approaches that can lead to better recommendations.
+
+\subsection{A sequential nature of the recommender process}
+
+Recommender systems usually work in a sequential manner: the RS suggest items to the user who can then accept one of the recommendations. At the next stage a new list of recommended items is calculated based on user feedback and then presented to the user. This sequential nature allows the reformulation of the recommendation process as a sequential optimization process. Furthermor, optimal recommendations do not depend only on previous items purchased, but also in the order in which those items are purchased. Zimdars et al.[***](Using temporal data for making recommendations) suggested the use of an a k-order Markov chain model (with k=3) to represent this behavior by dividing a sequence of transactions $X_1, . . . ,X_T$ into cases $(X_{t?k}, . . . ,X_{t?1},X_t$) for $t = 1, . . . ,T$. They then built a model to predict the item at the time step t given the other columns. Therefore, Recommender Systems can be modeled using reinforcement learning approaches.
+
 \section{Reinforcement Learning}
 
-as a reinforcement learning task called the multi-armed bandit [Sutton and Barto 1998]
+[***](Reinforcement Learning: a Survey)(Reinforcement Learning: an Introduction)
 
-Reinforcement learning involves modifying the behavior of a system such that the expected value of some possibly delayed scalar feedback is maximized.
+Reinforcement learning (RL) [***] is a family of machine learning algorithms that optimize sequential decision making processes based on scalar evaluations or rewards. Similarly to an n-armed bandit model[***](The multi-armed bandit problem: decomposition and computation), RL considers the problem as a goal-directed agent interacting with an uncertain environment, and where the main objective is to perform actions that maximize the expected sum of future reward for each state in the long term. The most important feature distinguishing RL from other types of learning is that it uses training information that evaluates the actions taken rather than instructs by giving correct actions (like supervised learning algorithms). In other words, an agent must be able to learn from its own experience, like a trial-and-error search.
 
-Reinforcement learning [7, 19] is a family of machine learning algorithms that optimize sequential decision making
-processes based on scalar evaluations called reinforcements. The objective is to maximize the expected sum of future reinforcements for each state.
+RL uses a formal framework[***](2) which defines the continuous interaction in terms of states, actions, and rewards, between the learner and decision-maker is called the \textit{agent} and an \textit{environment}. At each time step $t$, the agent receives some representation of the environment's state $s_t \in \mathcal{S}$, where $\mathcal{S}$ is the set of possible states, and then selects an action $a_t \in \mathcal{A}(s_t)$ , where $\mathcal{A	}(s_t)$ is the set of actions available in state. One time step later, the agent receives a numerical reward $r_{t+1} \in \mathcal{R}$, and the environment turns into new state $s_{t+1}$. Figure \ref{ig:rlenvironment} depicts the whole interaction in the agent-environment interface.
 
-If for each state the best action is taken according to the estimated value function, then the policy is called greedy.
+ \begin{figure}[h]
+\centering
+\includegraphics[scale=2]{images/rlenvironment}
+\caption{The Agent-Environment interface in a Reinforcement Learning problem. Source[***](2) }
+\label{fig:rlenvironment}
+\end{figure}
 
-An MDP is a model for sequential stochastic decision problems where an autonomous agent is influencing its surrounding environment through actions
+This framework is intended to be a simple way of representing four essential features of the artificial intelligence problem: (1) a \textit{policy} (commonly stochastic) defines a mapping from the perceived states of the environment to actions to be taken when in those states; (2) a \textit{reward} function maps each state-action pair to a single number that represents how good or bad the new state is for the environment; (3) a \textit{value} function specifies the total amount of reward an agent can expect to accumulate over the future and starting from a given state. This function is considered the most importatn as it is used by the agent during decision-making and planning; and optionally (4) a model that mimics the behavior of the environment (transitions and rewards) and provide way of deciding which action to perform considering possible future situations before they are actually experienced.
 
-For categorizing RL agents, base the writing on the definition of approaches to approximate the optimal policy in \textbf{DJ-MC: A Reinforcement-Learning Agent for Music Playlist Recommendation}
+In general, agents are categorized depending on how the reinforcement learning problem needs to be modeled. \textit{Value-based} and \textit{Policy-based} agents are solely based on the value and policy functions respectively. \textit{Actor-critic} agents use both policy and value functions; \textit{Model-free} agents use policy and/or value function but no model; and \textit{Model-based} agents have all properties mentioned above.
 
-Q-Learning in which values are estimated for each state and action combination
+On the other hand, The \textit{return} $R_t$ is defined as the sum of the discounted future rewards over an episode of $T$ time steps that an agent actually seeks to maximize:
+\begin{equation}
+\label{eq:return}
+R_t = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + ... = \sum^{\infty}_{k=0} \gamma^k r_{t+k+1}
+\end{equation}
+where $\gamma, 0 \leq \gamma \leq 1$ is a discount factor that determines the present value of future rewards
 
-Exploration/Exploitation
-exploitation corresponds with the generation of trust and the exploration with the presentation of new and unexpected items
+\subsection{Markov Decision Processes}
 
-the exploitation makes the behavior of the users more predictable, making estimates of the values more reliable. The exploration makes sure that the users have a chance to visit all pages, since it allows for all alternatives to be tried
+A Markov Decision Process (MDP) is a model for sequential stochastic decision problems. As such, it is widely used in applications where an autonomous agent is influencing its surrounding environment through actions [***](An MDP-based Recommender System). It is defined by a four-tuple $\langle S, A, R, Pr \rangle$ representing a Markov Chain with values and decisions that follow the following Markov property: \textit{a state S is Markov if and only if $\mathbb{P}[S_{t+1}|S_t] = \mathbb{P}[S_{t+1}|S_1,...S_t]$. In other words, the future is independent of the past given the present}. If a reinforcement learning task satisfies the Markov property and the state and action spaces are finite, then it can be modeled as a finite Markov Decision Process.
 
+A particular finite MDP is defined by its state and action sets, a reward function $R$ (equation \ref{eq:expectedRew}) that assigns a real value to each state/action pair, and a state-transition function $Pr$ (equation \ref{eq:transitionsProb}) which provides the probability of transitioning between every pair of states given each action. Altogether, these quantities completely specify the most important aspects of the dynamics of a finite MDP.
 
+\begin{equation}
+\label{eq:expectedRew}
+\mathcal{R}^a_{ss'} = \mathbb{E} {r_{t+1} | s_t=s, a_t=a, s_{t+1}=s'}
+\end{equation}
+
+\begin{equation}
+\label{eq:transitionsProb}
+\mathcal{P}^a_{ss'} = Pr {s_{t+1} = s' | s_t=s, a_t=a}
+\end{equation}
+
+In an MDP, the decision-maker?s goal is to find an optimal policy $\pi$, such that at each stage of the decision process, the agent needs only to obtain the current state $s$ and execute the action $a=\pi(s)$. Various exact and approximate algorithms have been proposed for estimating the optimal policy $\pi*$, such as policy iteration, value iteration, Monte-Carlo learning, temporal difference, Q-learning, SARSA, etc[***].
+
+\subsection{A standard model-free Reinforcement Learning Setup}
+
+A standard RL setup consists of an agent interacting with an environment $E$ in discrete timesteps. At each timestep $t$, the agent receives an observation $s_t$, takes an action $a_t$ and receives a reward $r_t$. Additionally, the environment E may be stochastic so it can be modeled as an MDP with a state space $\mathcal{S}$, action space $\mathcal{A}$, an initial state distribution $\rho(s_1)$, transition dynamics $\rho(s_{t+1}|s_t, a_t)$, and reward function $r(s_t, a_t)$. On the other hand, the agent?s behavior is defined by a policy $\pi$, which maps states to a probability distribution over the actions $\pi : \mathcal{S} \rightarrow P(\mathcal{A})$. Finally, the return from a state is defined as the sum of the discounted future reward $R_t = \sum^T_{i=t} \gamma^{(i?t)}r(s_i, a_i)$. As the return depends on the actions chosen and therefore on $\pi$, it may be stochastic. 
+
+The goal in reinforcement learning is to learn a policy which maximizes the expected return from a start distribution $J = \mathbb{E}_{r_i,s_i \sim E,a_i \sim \pi}[R_1]$. The action-value function is used in many RL algorithms and describes the expected return after taking an action $a_t$ in state $s_t$ and thereafter following policy $\pi$:
+\begin{equation}
+\label{eq:action-valueFcn}
+Q^{\pi}(s_t, a_t) = \mathbb{E}_{r_{i \geq t}, s_{i > t} \sim E, a_{i > t} \sim \pi} [R_t| s_t, a_t]
+\end{equation}
+
+Moreover, many approaches in RL opt to represent the action-value function as a recursive relationship using the Bellman equation:
+\begin{equation}
+\label{eq:bellmanEq}
+Q^{\pi}(s_t, a_t) = \mathbb{E}_{r_{t}, s_{t+1} \sim E} [r(s_t, a_t) + \gamma \mathbb{E}_{a_{t+1} \sim \pi} [Q^{\pi}(s_{t+1}, a_{t+1})] ]
+\end{equation}
+
+Nevertheless, If the target policy is deterministic we can describe it as a function $\mu: \mathcal{S} \leftarrow \mathcal{A}$ and avoid the inner expectation as shown in equation \ref{eq_Qdeterministic}. As the expectation depends only on the environment, it is possible to learn $Q^{\mu}$ off-policy, using transitions which are generated from a different stochastic behavior policy $\mu$.
+
+\begin{equation}
+\label{eq_Qdeterministic}
+Q^{\mu}(s_t, a_t) = \mathbb{E}_{r_{t}, s_{t+1} \sim E} [r(s_t, a_t) + \gamma Q^{\mu}(s_{t+1}, \mu_{t+1}) ]
+\end{equation}
+
+Q-learning[***](Q-learning. Machine learning), is a commonly used off-policy algorithm which uses a \textit{greedy} policy $\mu(s) = argmax_aQ(s, a)$ in order to estimate the action that gives the maximum reward. As a result, as the algorithm considers function approximators parameterized by $\theta^Q$, it can be used as an optimizer that minimize the loss:
+\begin{equation}
+\label{}
+L(\theta^Q) = \mathbb{E}_{s_{t} \sim \rho^{\beta}, a_t \sim \beta, r_t \sim E} [(Q(s_t, a_t | \theta_Q) - y_t)^2]
+\end{equation}
+where $y_t = r(s_t, aa_t) + \gamma Q(s_{t+1}, \mu(s_{t+1}) | \theta^Q)$. While $y_t$ is dependent on $\theta^Q$, this is tipically ignored.
+
+\subsection{Exploration/Exploitation Dilemma}
+
+One of the challenges that arise in reinforcement learning is the trade-off between exploration and exploitation[***]. To obtain a lot of reward, a reinforcement learning agent must prefer actions that has already tried in the past and found to be effective in terms of reward. But to discover such actions, it needs to try actions that it has not been selected before. In other words, The agent has to exploit actions that are already known as effective, but it also has to explore in order to make better action selections in the future.
+
+Na\"{i}ve approaches use a greedy policy $\pi(s) = argmax_aQ(s, a)$ to get the action with maximum reward as a pure exploitative model. However, an $\epsilon$-greedy policy can be considered instead to allow exploration in the environment and improve the estimation of the non-greedy action values. Therefore, the agent will select a random action with a probability $\epsilon$, and will act greedily with probability $1 - \epsilon$ . The advantage of $\epsilon$-greedy policy over greedy policy are the former continuously explore and improve the chances of recognizing possible actions that can lead to better rewards. 
+
+\subsection{OpenAI Gym: a Reinforcement Learning Toolkit}
+
+OpenAI Gym\footnote{\url{https://gym.openai.com/}} is a toolkit for developing and comparing reinforcement learning algorithms[***](OpenAI Gym). It includes a growing collection of benchmark problems that expose a common interface that abstracts the RL framework described above. It focuses on the episodic setting of reinforcement learning, where the agent?s experience is broken down into a series of episodes. During each episode, the agent?s initial state is randomly sampled from a distribution, and the interaction proceeds until the environment reaches a terminal state. The final goal in OpenAI Gym is to maximize the expectation of total reward per episode, and to achieve a high level of performance in as few episodes as possible.
+
+The design of the framework is based on the authors? experience developing and comparing reinforcement learning algorithms. It manages two core concepts: (1) a free-to-code \textit{agent} that maximizes the convenience for users allowing them to implement different styles of agent interface; and (2) a common \textit{environment} interface that ease the implement and testing of different reinforcement learning problems under the same framework. Moreover, environments are strictly versioned in order to maintain the consistency in the results obtained by previously implemented agents; and are instrumented with a configurable monitor interface, which keeps track of every time step during simulation.
+
+In general, OpenAI Gym contains a collection of Partially Observed MDP Environments (POMDPs). After performing an action step in an environment, its interface returns the observation of current state, reward achieved by the action performed, a done flag indicating if an episode ends (and therefore, needs to be reset), and an information object containing useful information for debugging and learning. Furthermore, environments come with first-class space objects that describe the valid actions and observations. Such spaces can be defined as a \textit{discrete} object allowing a fixed range of non-negative numbers, or as an n-dimensional \textit{box space} for representing continuous spaces.
+
+On the other hand, the measure of performance in a RL algorithm under an environment can be measured along two axes: \textit{final performance} or average reward per episode, after learning is complete; and, \textit{sample complexity} or the amount of time it takes to learn. The latter can be measured in multiple ways, for example, by counting the number of episodes until reaching a threshold level of average performance. Naturally, this threshold is chosen per-environment in an ad-hoc way. In addition, the OpenAI Gym website allows users to compare the performance of their algorithms in a way to collaborate with each other rather than a competition.
 
 \section{Recommender Systems and Reinforcement Learning}
 
-**References to papers are temporarily described with their title in order to facilitate the identification of the source, but they will be replaced with proper latex references 
-
-The first experiments on using reinforcement learning techniques were focused on developing recommendation systems for web content and using implicit data from server log files which stored the navigation of the users throughout their contents.
+Although reinforcement learning seems to have great potential for improving the recommendation problem, it has received relatively little attention and found only limited application. The first experiments on using reinforcement learning techniques were focused on developing recommendation systems for web content and using implicit data from server log files which stored the navigation of the users throughout their contents.
 
 \textbf{Exploration/Exploitation in Adaptive Recommender Systems} considered reinforcement learning with an exploration/exploitation approach of unknown areas to automatically improve their recommendation policy for helping users to navigate through an adaptive web site. They state that a model-free algorithm like Q-Learning can become infeasible if the number of actions are so high. Additionally, they showed that a greedy policy can indeed lead to a suboptimal recommendation model as the use of such kind of policy function, where the \"best\" actions (e.g with higher probability) are taken, does not always improve the policy, so to avoid reinforcing values for states with initial high values, a random exploration process needs to be added to the action selection. The popular exploration $\epsilon$ greedy policy algorithm which modifies the action selection by selecting a greedy action with probability ($1-\epsilon$) or an arbitrary action with probability $\epsilon$ otherwise in order to explore  other existing options for the user. However, the exploration/exploitation dilemma came out as the exploration makes the future of a sequence less predictable influencing the estimation of the value function itself but inconsistent random actions have to be chosen to obtain a better policy. They finally demonstrated that this problem is solved by starting the algorithm with a lot of exploration and gradually reduce the parameter $\epsilon$ when the policy is getting closer to the optimum. Results concluded that a recommender system without exploration potentially can get trapped into a local maxima.
 
@@ -268,9 +391,9 @@ To sum up, this work was considered by the authors as the first to balance explo
 
 \textbf{ENHANCING COLLABORATIVE FILTERING MUSIC RECOMMENDATION BY BALANCING EXPLORATION AND EXPLOITATION} extended the work presented above by introducing exploration into the CF context. The approach used a Bayesian graphical model that takes into account the CF latent factors and novelty of recommendation, as well as a Bayesian inference algorithm to efficiently estimate the posterior rating distributions.
 
-Authors argued that their previous work, based on a content-based approach, had experience the following drawbacks: (i) the personalized user rating model suffer of a semantic meaning between low-level audio features and high-level user preferences; (ii) it is difficult to determine which acoustic features are actually effective in the music recommendation scenario; and (iii) recommendation of songs under this approach lacks of variety due to most of them are acoustically similar. Therefore, they presented an approach based ........
+Authors argued that their previous work, based on a content-based approach, had experienced the following drawbacks: (i) the personalized user rating model suffer of a semantic meaning between low-level audio features and high-level user preferences; (ii) it is difficult to determine which acoustic features are actually effective in the music recommendation scenario; and (iii) recommendation of songs under this approach lacks of variety due to most of them are acoustically similar. Therefore, they presented a memory-based CF approach using matrix factorization in order to improve recommendations.
 
-Recalling the definition of Matrix factorization in Section [***], this method characterizes users and songs by vectors of latent factors $\mathbf{u_i}$ and $\mathbf{v_j}$ respectively with $i \in [1, m], j \in [1, n]$. In order to learn the latent feature vectors, the system used equation \ref{eq:matrixFactorization} and Alternating Least Squares (ALS)[***] to minimize the regularized cost function on the training set:
+Recalling the definition of Matrix factorization in Section \ref{sec:matrixFactorization}, this method characterizes users and songs by vectors of latent factors $\mathbf{u_i}$ and $\mathbf{v_j}$ respectively with $i \in [1, m], j \in [1, n]$. In order to learn the latent feature vectors, the system used equation \ref{eq:matrixFactorization} and Alternating Least Squares (ALS)[***] to minimize the regularized cost function on the training set:
 
 \begin{equation}
 \label{eq:matrixFactorization}
@@ -443,8 +566,70 @@ An evaluation of the cumulative reward distribution of the proposed approach aga
 
 \section{Deep Reinforcement Learning}
 
-\textbf{Human-level control through deep reinforcement learning}
+Notably, recent advances in deep neural networks , in which several layers of nodes are used to build up progressively more abstract representations of the data, have made it possible for artificial neural networks to learn concepts such as object categories directly from raw sensory data
 
+Tousereinforcementlearningsuccessfully insituations approaching real-worldcomplexity,however, agents are confronted witha difficult task: theymust derive efficient representations of the environment from high-dimensional sensory inputs, and use these togeneralizepast experience tonewsituations.
+
+While reinforcement learning agents have achieved some successes in a variety of domain, their applicability has previously been limited to domains in which useful features can be handcrafted, or to domains with fully observed, low-dimensional state spaces.
+
+\textbf{Playing atari with deep reinforcement learning} and \textbf{Human-level control through deep reinforcement learning} presented the first deep learning approach model which uses an end-to-end reinforcement learning approach to learn control policies directly from a high-dimensional raw input space. The model, applied to a range of Atari 2600 games, consists of convolutional neural network and an experience replay mechanism[***] to alleviate the problems of correlated data and non-stationary distributions in typical RL problems. Moreover, the model's architecture uses only the state representation as input, and a separate output unit for each possible action (target network), corresponding to the predicted Q-values of each individual action for the input state. This configuration allows the computation of for all possible actions reward in a given state with only a single forward pass. Finally, the resulting neural network is trained with a variant of Q-learning which learns from raw pixels input and the underlying environment properties, and outputs a value function estimating the future rewards.
+
+The formulation models the $\pi$environment $\mathcal{E}$ as a Markov Decision Process composed by a state space $\mathcal{S}$, an action space $\mathcal{A}=\{1...K\}$, a scalar reward function $r(s_t, a_t)$ and a transition dynamics $\rho(s_{t+1}|s_t, a_t)$. Moreover, the algorithm follows the basic idea behind many reinforcement learning tasks: given the agent's behavior defined by a policy $\pi$, they estimate the action-value function by using an approximator function of the Bellman equation (presented in eq. \ref{eq:bellmanEq}) as an iterative update. A Q-network function approximator with weights $\theta$ is then trained by minimising the sequence of loss functions $L_i(\theta_i)$ defined in equation \ref{eq:QnetLoss}
+\begin{equation}
+\label{eq:QnetLoss}
+L_i(\theta_i) = \mathbb{E}_{s, a \sim \rho (\cdot)}[(y_i - Q(s, a; \theta_i))^2]
+\end{equation}
+where $y_i = \mathbb{E}_{s'\sim \mathcal{E}} [r + \gamma max_{a'} Q(s', a'; \theta_{i-1})|s, a]$ is the target for iteration i and $\rho(s, a)$ is a probability distribution over sequences of states s and actions a known as behavior.
+
+Rather than computing the full expectations in the gradient of the loss function, they considered stochastic gradient mini-batch updates of the weight parameters, and a learning algorithm which is: a)\textit{model-free}: replaces the expectations by directly using uniform samples from the behaviour distribution $\rho$, and b)\textit{off-policy}: it follows an $\epsilon$-greedy strategy of the behaviour distribution that ensures an adequate exploration of the state space.
+
+Evaluation results of the proposed algorithm showed that this method is able to learn how the value function evolves for a reasonably complex sequence of events. Furthermore, a performance evaluation compared this approach with the Sarsa[***] and Contingency[***] methods demonstrating that the deep reinforcement learning algorithm outperforms other methods which need to incorporate significant (handcrafted) prior knowledge about the visual problem to get considerable performance. Finally, the proposed method also achieved better performance than an expert human player in 29 out of 49 games.
+
+The main advantages of using this deep learning approach with an experience replay of size N are: i) each step of experience is potentially used in many weight updates, allowing greater data efficiency; ii) randomizing the samples breaks the correlation in a sequential event and therefore reduces the variance of the updates; iii) the experience replay mechanism allows the behavior distribution to be averaged over many of its previous states, smoothing out learning and avoiding instability or divergence in the parameters; and iv) the method showed that can be applied to a series of different reinforcement learning tasks with no adjustment of its architecture or learning algorithm.
+
+However, this model is only able to handle discrete low-dimensional action spaces and cannot be directly applied to tasks under the continuous domain as the iterative process of finding the action that maximizes the action-value function will become intractable. Additionally, a naive discretization of the action space is not a good solution as it will throw away information about the structure of the action domain.
+
+\textbf{Continuous control with deep reinforcement learning} adapted the ideas presented above to the continuous space and action domain and provided an actor-critic, model-free algorithm based on the Deterministic Policy Gradient[***] (\textbf{Deterministic Policy Gradient Algorithms}) that is able to find policies end-to-end whose performance is competitive compared to previous approaches based on a planning algorithm with access to the dynamics of the domain. To do so, they used the similar features of DQN (network architecture, experience replay memory, target outputs, etc), along with batch normalization[***], to overcome the internal covariate shift problem by normalizing the network layer inputs during mini-batches.
+
+The Deep Deterministic Policy Gradient (DDPG) implementation uses an actor-critic approach based on the DPG algorithm which mainly maintains two functions: 1)the actor function $\mu(s|\theta_{\mu})$ that obtains the current policy by deterministically mapping states to specific actions; and 2)the critic function $Q(s,a)$ learned by applying the Bellman equation. DPG then updates the actor by applying the chain rule to the expected return from a start distribution $J = \mathbb{E}_{r_i, si \sim E, a_i \sim \pi}[R_1]$ and with respect to the actor parameters:
 \begin{equation}
 \label{}
+\begin{aligned}
+\nabla_{\theta^{\mu}}J & \approx \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_{\theta^{\mu}} Q(s, a | \theta_Q)|_{s=s_t, a=\mu(s_t|\theta_{\mu})} ] \\
+& = \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_a Q(s, a | \theta_Q)|_{s=s_t, a=\mu(s_t)}  \nabla_{\theta^{\mu}} \mu(s|\theta^{\mu})|_{s=s_t}]
+\end{aligned}
 \end{equation}
+
+Even if convergence is no longer guaranteed due to the non-linearity of the proposed approximation function, it produces a good generalization on large state spaces.
+
+On the other hand, the DDPG algorithm also implement certain improvements that overcome the problems and challenges presented when using Deep Q-learning: instability of the learning process, generalization of the solution to multiple environments, and handling a mechanism to improve the exploration-exploitation trade-off. First, in order to solve the relatively unstable problem of learning the action-value function and optimize the gradient results significantly, target networks were modified to use soft target updates, rather than directly copying the weights. Then, the underlying weights are slowly updated by exponentially moving their average values using $\theta' \leftarrow \tau\theta + (1 - \tau)\theta'$ with $\tau \ll 1$. 
+
+A second improvement solved the difficulty of finding hyper-parameters that allow generalization across environments when the low dimensional feature vector observations have different physical units and the ranges. This issue is addressed by adapting a batch normalization technique proposed by [***], that minimizes the covariance shift during training by normalizing each dimension across samples in a mini-batch to have unit mean and variance. As a result, DDPG ensures that each layer receives whitened input in favor of learning effectively across many different tasks with differing types of units.
+
+The third improvement tries to overcome the common challenge on how to manage exploration in reinforcement learning tasks with continuous actions spaces. The exploration-explotaition trade-off was managed independently from the learning algorithm by adding noise sampled from a noise process $\mathcal{N}$ to the actor policy $\mu$ and thus create an exploration policy $\mu'(s_t) = \mu(s_t|\theta^{\mu}_t) + \mathcal{N}$. Hence, any sampling process $\mathcal{N}$ can be plugged in to suit exploration on specific environments. 
+
+To evaluate the algorithm under physical environments with different levels of difficulty, they used the the Ornstein-Uhlenbeck[***] sampling process for adding exploration to the policy. The results demonstrated that even when harder tasks obtain poor Q estimates, DDPG is able to learn good policies across a variety of domains with continuous action spaces and using both low-dimensional feature vector and high-dimensional pixel inputs. Additionally, all the experiments were solved using fewer steps of experience than the DQN algorithm, showing that DDPG may be able to solve even more difficult problems. However, it requires of a large number of training episodes to find solutions and only works in environments with a small set of actions, so more robust model-free approaches should be proposed in order to tackle these limitation.
+
+Later, \textbf{Deep Reinforcement Learning in Large Discrete Action Spaces} presented a new policy architecture, under the same actor-critic framework used in [***], that not only allows reinforcement learning methods to be applied to large-scale learning problems, and to operate efficiently with a large number of actions, but also can generalize over the action set in logarithmic time. The policy is then trained and optimized using DDPG. As a result, they obtained a more efficient algorithm that makes both learning and acting tractable in time and allows value-based policies to use the action features to reason about previously unseen actions.
+
+The \textit{Wolpertinger} architecture introduces two characteristics that previous approaches did not provide: 1)leverages prior information about the actions and embed them in a continuous space upon which the actor can generalize using a smooth function approximator, and 2)after the policy produces a continuous action within this space, it then uses an approximate nearest neighbor search to find the set of closest discrete actions in logarithmic time to finally select the highest valued action relative to a cost function. Overall, the algorithm is now able to handle large-scale reinforcement learning tasks by adding a sub-linear complexity relative to the action space and the ability to generalize over actions.
+
+Moreover, the algorithm also avoids the heavy cost of evaluating all actions mainly by defining an efficient action-generating actor, and then using the critic to refine the actor?s choices for the full policy. The underlying function approximators are built using multi-layer neural networks and the resulting policy is trained with DDPG.
+
+The action generation function $f_{\theta^{\pi}}(s) = \hat{\mathbf{a}}$ provides a proto-action in $\mathbb{R}^n$ for a given state s. $\hat{\mathbf{a}}$ is then mapped to the discrete action set $\mathcal{A}$ by applying the k-nearest-neighbor\footnote{The size of the generated action set k is task specific, and allows for an explicit trade-off between policy quality and speed} function from equation \ref{eq:knnDDPG}, which returns the k closest actions in $\mathcal{A}$ by computing the $L_2$ distance between them. Even if $g_k$ has the same complexity as the \textit{argmax} in the Q action-value function, each step of evaluation of the $L_2$ distance is faster than a full value-function evaluation as the lookup is performed in logarithmic time.
+\begin{equation}
+\label{eq:knnDDPG}
+g_k(\hat{\mathbf{a}}) = \arg\min^k_{a \in \mathcal{A}} | \mathbf{a} - \mathbf{\hat{\mathbf{a}}} |_2
+\end{equation}
+
+Following the selection of the of k closest actions to $\hat{\mathbf{a}}$, the choice of the actual action to be applied to the environment is set according to the highest-scoring action obtained according $Q_{\theta^Q}$ defined in equation \ref{eq:qDDPG}. Consequently, the full Wolpertinger policy $\pi_{\theta}$ with parameter $\theta$, representing both the parameters of the action generation element $\theta_{\pi}$ and of the critic $\theta_Q$, makes the algorithm significantly more robust to imperfections in the choice of action representation.
+
+\begin{equation}
+\label{eq:qDDPG}
+\pi_{\theta}(s) = \arg\max_{a \in g_k \circ f_{\theta^{\pi}}(s) } Q_{\theta^Q}(s, a)
+\end{equation}
+
+The goal of this approach is to perform policy iteration by alternatively performing policy evaluation on the current policy with Q-learning, and then improving upon the current policy by following the DDPG configuration introduced in [***](previous paper) over $f_{\theta^{\pi}}$, considering that the effects of g are a deterministic aspect of the environment. In this case, the critic is trained from samples stored in the replay buffer (which are generated by the full policy $\pi_{\theta^{\pi}} = g \circ f_{\theta^{\pi}}(s)$), whereas the policy gradient $\nabla_a Q_{\theta^Q}(s,a)$ is taken at the actual output $\hat{\mathbf{a}} = f_{\theta^{\pi}}(s)$. Finally, the target action in que Q-update is generated by the full policy.
+
+The agent was evaluated on three environment classes: discretized continuous control, multi-step planning, and recommender systems. Specifically, the latter used a simulated recommendation system to demonstrate how the agent would perform on a real world large action space problem. Results showed that a subset of the full set of actions is sufficient in many tasks to converge and provide significant speedups. Therefore, the Wolpertinger algorithm can scale to real-world MDPs with large number of actions, but with an still existing issue of exploration when the agent needs to learn from scratch.
+

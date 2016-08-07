@@ -51,6 +51,20 @@ $ source .venv/bin/activate
 (venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py2-none-any.whl
 (venv)$ pip install --upgrade $TF_BINARY_URL
 ```
+## FLANN Installation
+
+Download Flann from (Official Site)[http://www.cs.ubc.ca/research/flann/] and extract the contents to the project home directory
+
+Pre-requisite: (Cmake)[https://cmake.org/]
+
+```bash
+(venv)$ cd flann-1.8.4-src
+(venv)$ mkdir build
+(venv)$ cd build
+(venv)$ cmake ..
+(venv)$ make
+(venv)$ sudo make install
+```
 
 Running the environment
 ======

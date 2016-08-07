@@ -62,6 +62,7 @@ Pre-requisite: (Cmake)[https://cmake.org/]
 (venv)$ mkdir build
 (venv)$ cd build
 (venv)$ cmake ..
+(venv)$ execute cmake-gui and set PYTHONPATH=${project_dir}/.venv/lib/python2.7
 (venv)$ make
 (venv)$ sudo make install
 ```

@@ -11,6 +11,7 @@ flags.DEFINE_bool('warmq',True,'train Q during warmup time')
 flags.DEFINE_float('log',.01,'probability of writing a tensorflow log at each timestep')
 flags.DEFINE_integer('bsize',32,'minibatch size')
 flags.DEFINE_bool('async',True,'update policy and q function concurrently')
+flags.DEFINE_bool('batch_norm',False,'execute batch normalization over network layers')
 
 # ...
 # TODO: make command line options
@@ -20,6 +21,9 @@ pl2 =.0
 ql2 =.01
 lrp =.0001
 lrq =.001
+# ql2 =.001
+# lrp =.0015
+# lrq =.005
 ou_theta = 0.15
 ou_sigma = 0.2
 rm_size = 500000
@@ -55,7 +59,9 @@ class Agent:
     self.theta_qt, update_qt = exponential_moving_averages(self.theta_q, tau)
 
     obs = tf.placeholder(tf.float32, [None] + dimO, "obs")
-    act_test, sum_p = nets.policy(obs, self.theta_p)
+    is_training = tf.placeholder(tf.bool, name="is_training")
+    # act_test, sum_p = nets.policy(obs, self.theta_p)
+    act_test, sum_p = nets.policy(obs, self.theta_p) if not FLAGS.batch_norm else nets.policy_norm(obs, self.theta_p, is_training)
 
     # explore
     noise_init = tf.zeros([1]+dimA)
@@ -65,7 +71,8 @@ class Agent:
     act_expl = act_test + noise
 
     # test
-    q, sum_q = nets.qfunction(obs, act_test, self.theta_q)
+    # q, sum_q = nets.qfunction(obs, act_test, self.theta_q)
+    q, sum_q = nets.qfunction(obs, act_test, self.theta_q) if not FLAGS.batch_norm else nets.qfunction_norm(obs, act_test, self.theta_q, is_training)
     # training
     # policy loss
     meanq = tf.reduce_mean(q, 0)
@@ -84,10 +91,13 @@ class Agent:
     obs2 = tf.placeholder(tf.float32, [FLAGS.bsize] + dimO, "obs2")
     term2 = tf.placeholder(tf.bool, [FLAGS.bsize], "term2")
     # q
-    q_train, sum_qq = nets.qfunction(obs, act_train, self.theta_q)
+    # q_train, sum_qq = nets.qfunction(obs, act_train, self.theta_q)
+    q_train, sum_qq = nets.qfunction(obs, act_train, self.theta_q) if not FLAGS.batch_norm else nets.qfunction_norm(obs, act_train, self.theta_q, is_training, reuse=True)
     # q targets
-    act2, sum_p2 = nets.policy(obs2, theta=self.theta_pt)
-    q2, sum_q2 = nets.qfunction(obs2, act2, theta=self.theta_qt)
+    # act2, sum_p2 = nets.policy(obs2, theta=self.theta_pt)
+    act2, sum_p2 = nets.policy(obs2, theta=self.theta_pt) if not FLAGS.batch_norm else nets.policy_norm(obs2, theta=self.theta_pt, is_training=is_training, reuse=True)
+    # q2, sum_q2 = nets.qfunction(obs2, act2, theta=self.theta_qt)
+    q2, sum_q2 = nets.qfunction(obs2, act2, theta=self.theta_qt) if not FLAGS.batch_norm else nets.qfunction_norm(obs2, act2, theta=self.theta_qt, is_training=is_training, reuse=True)
     q_target = tf.stop_gradient(tf.select(term2,rew,rew + discount*q2))
     # q_target = tf.stop_gradient(rew + discount * q2)
     # q loss
@@ -119,12 +129,19 @@ class Agent:
 
     # tf functions
     with self.sess.as_default():
-      self._act_test = Fun(obs,act_test)
-      self._act_expl = Fun(obs,act_expl)
+      # self._act_test = Fun(obs,act_test)
+      # self._act_expl = Fun(obs,act_expl)
+      # self._reset = Fun([],self.ou_reset)
+      # self._train_q = Fun([obs,act_train,rew,obs2,term2],[train_q],log_train,self.writer)
+      # self._train_p = Fun([obs],[train_p],log_train,self.writer)
+      # self._train = Fun([obs,act_train,rew,obs2,term2],[train_p,train_q],log_train,self.writer)
+
+      self._act_test = Fun([obs, is_training],act_test)
+      self._act_expl = Fun([obs, is_training],act_expl)
       self._reset = Fun([],self.ou_reset)
-      self._train_q = Fun([obs,act_train,rew,obs2,term2],[train_q],log_train,self.writer)
-      self._train_p = Fun([obs],[train_p],log_train,self.writer)
-      self._train = Fun([obs,act_train,rew,obs2,term2],[train_p,train_q],log_train,self.writer)
+      self._train_q = Fun([obs,act_train,rew,obs2,term2, is_training],[train_q],log_train,self.writer)
+      self._train_p = Fun([obs, is_training],[train_p],log_train,self.writer)
+      self._train = Fun([obs,act_train,rew,obs2,term2, is_training],[train_p,train_q],log_train,self.writer)
 
     # initialize tf variables
     self.saver = tf.train.Saver(max_to_keep=1)
@@ -144,7 +161,8 @@ class Agent:
 
   def act(self, test=False):
     obs = np.expand_dims(self.observation, axis=0)
-    action = self._act_test(obs) if test else self._act_expl(obs)
+    # action = self._act_test(obs) if test else self._act_expl(obs)
+    action = self._act_test(obs, False) if test else self._act_expl(obs, True)
     self.action = np.atleast_1d(np.squeeze(action, axis=0)) # TODO: remove this hack
     return self.action
 
@@ -164,7 +182,8 @@ class Agent:
       elif FLAGS.warmq and self.rm.n > 1000:
         # Train Q on warmup
         obs, act, rew, ob2, term2, info = self.rm.minibatch(size=FLAGS.bsize)
-        self._train_q(obs,act,rew,ob2,term2, log = (np.random.rand() < FLAGS.log), global_step=self.t)
+        # self._train_q(obs,act,rew,ob2,term2, log = (np.random.rand() < FLAGS.log), global_step=self.t)
+        self._train_q(obs,act,rew,ob2,term2, True, log = (np.random.rand() < FLAGS.log), global_step=self.t)
 
       # save parameters etc.
       # if (self.t+45000) % 50000 == 0: # TODO: correct
@@ -176,10 +195,13 @@ class Agent:
     log = (np.random.rand() < FLAGS.log)
 
     if FLAGS.async:
-      self._train(obs,act,rew,ob2,term2, log = log, global_step=self.t)
+      # self._train(obs,act,rew,ob2,term2, log = log, global_step=self.t)
+      self._train(obs,act,rew,ob2,term2, True, log = log, global_step=self.t)
     else:
-      self._train_q(obs,act,rew,ob2,term2, log = log, global_step=self.t)
-      self._train_p(obs, log = log, global_step=self.t)
+      # self._train_q(obs,act,rew,ob2,term2, log = log, global_step=self.t)
+      # self._train_p(obs, log = log, global_step=self.t)
+      self._train_q(obs,act,rew,ob2,term2, True, log = log, global_step=self.t)
+      self._train_p(obs, True, log = log, global_step=self.t)
 
   def write_scalar(self,tag,val):
     s = tf.Summary(value=[tf.Summary.Value(tag=tag,simple_value=val)])

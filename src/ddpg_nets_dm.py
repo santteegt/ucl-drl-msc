@@ -2,13 +2,15 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.contrib.layers.python.layers import layers
 
+default_type = tf.float64
+
 def hist_summaries(*args):
   return tf.merge_summary([tf.histogram_summary(t.name,t) for t in args])
 
 def fanin_init(shape,fanin=None):
   fanin = fanin or shape[0]
   v = 1/np.sqrt(fanin)
-  return tf.random_uniform(shape,minval=-v,maxval=v)
+  return tf.random_uniform(shape,minval=-v,maxval=v, dtype=default_type)
 
 
 l1 = 400 # dm 400
@@ -31,8 +33,8 @@ def theta_p(dimO,dimA):
             tf.Variable(fanin_init([l1],dimO),name='1b'),
             tf.Variable(fanin_init([l1,l2]),name='2w'),
             tf.Variable(fanin_init([l2],l1),name='2b'),
-            tf.Variable(tf.random_uniform([l2,dimA],-3e-3,3e-3),name='3w'),
-            tf.Variable(tf.random_uniform([dimA],-3e-3,3e-3),name='3b')]
+            tf.Variable(tf.random_uniform([l2,dimA],-3e-3,3e-3, dtype=default_type),name='3w'),
+            tf.Variable(tf.random_uniform([dimA],-3e-3,3e-3, dtype=default_type),name='3b')]
   
 def policy(obs,theta,name='policy'):
   with tf.variable_op_scope([obs],name,name):
@@ -68,8 +70,8 @@ def theta_q(dimO,dimA):
             tf.Variable(fanin_init([l1],dimO),name='1b'),
             tf.Variable(fanin_init([l1+dimA,l2]),name='2w'),
             tf.Variable(fanin_init([l2],l1+dimA),name='2b'),
-            tf.Variable(tf.random_uniform([l2,1],-3e-4,3e-4),name='3w'),
-            tf.Variable(tf.random_uniform([1],-3e-4,3e-4),name='3b')]
+            tf.Variable(tf.random_uniform([l2,1],-3e-4,3e-4, dtype=default_type),name='3w'),
+            tf.Variable(tf.random_uniform([1],-3e-4,3e-4, dtype=default_type),name='3b')]
     
 def qfunction(obs,act,theta, name="qfunction"):
   with tf.variable_op_scope([obs,act],name,name):

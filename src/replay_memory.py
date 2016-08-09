@@ -9,6 +9,7 @@ class ReplayMemory:
     sa = np.concatenate(np.atleast_1d(size,dimA),axis=0)
     self.observations = np.empty(so, dtype = dtype)
     self.actions = np.empty(sa, dtype = np.float32)
+    self.g_actions = np.empty(sa, dtype=np.float32)
     self.rewards = np.empty(size, dtype = np.float32)
     self.terminals = np.empty(size, dtype = np.bool)
     self.info = np.empty(size,dtype = object)
@@ -20,7 +21,7 @@ class ReplayMemory:
     self.n = 0
     self.i = -1
 
-  def enqueue(self, observation,terminal,action,reward,info=None):
+  def enqueue(self, observation, terminal, action, g_action, reward, info=None):
     
     self.i = (self.i + 1) % self.size
     
@@ -28,6 +29,7 @@ class ReplayMemory:
     self.terminals[self.i] = terminal # tells whether this observation is the last
     
     self.actions[self.i,...] = action
+    self.g_actions[self.i, ...] = g_action
     self.rewards[self.i] = reward
     
     self.info[self.i,...] = info
@@ -55,17 +57,19 @@ class ReplayMemory:
     
     o = self.observations[indices,...]
     a = self.actions[indices]
+    g_a = self.g_actions[indices]
     r = self.rewards[indices]
     o2 = self.observations[indices+1,...]
     t2 = self.terminals[indices+1]
     info = self.info[indices,...]
 
-    return o, a, r, o2, t2, info
+    return o, a, g_a, r, o2, t2, info
     
   def __repr__(self):
     indices = range(0,self.n)
     o = self.observations[indices,...]
     a = self.actions[indices]
+    g_a = self.g_actions[indices]
     r = self.rewards[indices]
     t = self.terminals[indices]
     info = self.info[indices,...]
@@ -77,12 +81,15 @@ class ReplayMemory:
     ACTIONS
     {}
 
+    G ACTIONS
+    {}
+
     REWARDS
     {}
 
     TERMINALS
     {}
-    """.format(o,a,r,t)
+    """.format(o, a, g_a, r, t)
 
     return s
 
@@ -95,7 +102,7 @@ if __name__ == '__main__':
     rm.enqueue(i,i%3==0,i,i,i)
   
   for i in range(1000):
-    o, a, r, o2, t2, info = rm.minibatch(10)
+    o, a, g_a, r, o2, t2, info = rm.minibatch(10)
     assert all(o == o2-1),"error: o and o2"
     assert all(o != s-1) , "error: o wrap over rm. o = "+str(o) 
     assert all(o2 != 0) , "error: o2 wrap over rm"

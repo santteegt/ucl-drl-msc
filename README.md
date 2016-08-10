@@ -38,9 +38,9 @@ Installation
 
 ```bash
 $ git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git
-$ git submodule update --init --recursive
 
 $ cd ucl-cfdrl-msc
+$ git submodule update --init --recursive
 $ mkdir .venv
 $ virtualenv --system-site-packages --python=python2.7 .venv/
 $ source .venv/bin/activate

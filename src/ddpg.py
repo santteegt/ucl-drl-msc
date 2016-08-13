@@ -213,7 +213,8 @@ class Agent:
     obs = np.expand_dims(self.observation, axis=0)
     action_cont = np.expand_dims(action_cont, axis=0)
     rew_g = np.expand_dims(rew_g, axis=0)
-    return np.asarray( self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g) )
+    # return np.asarray( self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g) )
+    return self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g)[0]
 
   def observe(self, rew, term, obs2, test=False, g_action=None):
 

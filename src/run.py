@@ -115,7 +115,8 @@ class Experiment:
         term_g = np.zeros(len(A_k), dtype=np.bool)
         # for i in range(len(A_k)):
         #   _, rew_g[i], term_g[i], _ = self.env.step(A_k[i])
-        g_action = A_k[ self.agent.wolpertinger_policy(action, A_k, rew_g, term_g) ]
+        maxq_index = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
+        g_action = A_k[maxq_index[0]]
         action_to_perform = g_action
         # res = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
         # print('continuous action: {} discretized action: {}'.format(action, g_action))

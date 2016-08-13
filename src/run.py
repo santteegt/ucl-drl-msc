@@ -11,8 +11,10 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_boolean('upload',False,'upload to gym (requires evironment variable OPENAI_GYM_API_KEY)')
 flags.DEFINE_string('env','','gym environment')
-flags.DEFINE_integer('train',10000,'training time between tests. use 0 for test run only')
-flags.DEFINE_integer('test',10000,'testing time between training')
+# flags.DEFINE_integer('train',10000,'training time between tests. use 0 for test run only')
+# flags.DEFINE_integer('test',10000,'testing time between training')
+flags.DEFINE_integer('train',10,'training time between tests. use 0 for test run only')
+flags.DEFINE_integer('test',1,'testing time between training')
 flags.DEFINE_integer('tmax',10000,'maximum timesteps per episode')
 flags.DEFINE_bool('random',False,'use random agent')
 flags.DEFINE_bool('tot',False,'train on test data')
@@ -66,6 +68,7 @@ class Experiment:
       R = []
       while self.t_test - T < FLAGS.test:
         R.append(self.run_episode(test=True, monitor=(self.t_test - T < FLAGS.monitor * FLAGS.test), custom_policy=wolp))
+        self.t_test += 1
       avr = np.mean(R)
       print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
       # save return
@@ -74,7 +77,7 @@ class Experiment:
 
       # evaluate required number of episodes for gym and end training when above threshold
       if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
-        avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)])
+        avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)]) # trials???
         if avr > self.env.spec.reward_threshold:
           break
 
@@ -83,6 +86,7 @@ class Experiment:
       R = []
       while self.t_train - T < FLAGS.train:
         R.append(self.run_episode(test=False, custom_policy=wolp))
+        self.t_train += 1
       avr = np.mean(R)
       print('Average training return\t{} after {} timesteps of training'.format(avr,self.t_train))
 
@@ -129,10 +133,10 @@ class Experiment:
       r_f = self.env.filter_reward(reward)
       self.agent.observe(r_f,term,observation,test = test and not FLAGS.tot, g_action=g_action)
 
-      if test:
-        self.t_test += 1
-      else:
-        self.t_train += 1
+      # if test:
+      #   self.t_test += 1
+      # else:
+      #   self.t_train += 1
 
       R += reward
       t += 1

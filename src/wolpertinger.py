@@ -10,7 +10,7 @@ flags.DEFINE_string('nn_index_file', None, 'Nearest neighbors index file')
 flags.DEFINE_boolean('save_index', True, 'save the nearest-neighbors index on nn_index_file')
 flags.DEFINE_float('nn_target_precision', 0.7, 'Nearest neighbors target precision for autotuned index')
 flags.DEFINE_integer('knn', 1, 'Number of Nearest neighbors to lookup')
-flags.DEFINE_integer('knn_checks', 2, 'Number of checks: N. of times the index tree should be recursively searched.' +
+flags.DEFINE_integer('knn_checks', 1, 'Number of checks: N. of times the index tree should be recursively searched.' +
                      'It must be set when loading index from file')
 
 
@@ -52,6 +52,11 @@ class Wolpertinger(object):
         else:
             raise Exception("Error in parameter configuration. Index was not created/loaded")
 
+        print("Wolpertinger policy configuration: \n " +
+              "Create index: {} \n Target Precision: {} \n knn: {} \n Index File: {} \n # points: {} \n Checks: {}"
+              .format(FLAGS.create_index, FLAGS.nn_target_precision, FLAGS.knn, FLAGS.nn_index_file, i,
+                      self.__flann_params["checks"] if self.__flann_params else FLAGS.knn_checks))
+
     def g(self, action, k=None):
         '''
         Function g that returns the k-nearest-neighbors for a given continuous action
@@ -64,6 +69,7 @@ class Wolpertinger(object):
 
         nearest_neighbors = k if k is not None else FLAGS.knn
         checks = self.__flann_params["checks"] if self.__flann_params else FLAGS.knn_checks
+        # checks = FLAGS.knn_checks
         results, dists = self.__flann.nn_index(action, nearest_neighbors, checks=checks)
         return [self.__A[val] for val in results]
 

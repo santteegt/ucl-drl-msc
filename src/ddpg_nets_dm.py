@@ -15,6 +15,9 @@ def fanin_init(shape,fanin=None):
 
 l1 = 400 # dm 400
 l2 = 300 # dm 300
+# according to leopard1 implementation
+# l1 = 200 # dm 400
+# l2 = 200 # dm 300
 
 # batch_norm_params = {"decay": 0.99, "center": True, "scale": True, "is_training": True, "trainable": True, "reuse": True}
 batch_norm_params = {"center": True, "scale": True, "updates_collections": None, "activation_fn": tf.nn.relu}

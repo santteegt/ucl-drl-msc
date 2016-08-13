@@ -6,12 +6,14 @@ import numpy as np
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_float('ou_sigma',0.2,'')
-flags.DEFINE_integer('warmup',50000,'time without training but only filling the replay memory')
+# flags.DEFINE_integer('warmup',50000,'time without training but only filling the replay memory')
+flags.DEFINE_integer('warmup',5000,'time without training but only filling the replay memory')
 flags.DEFINE_bool('warmq',True,'train Q during warmup time')
 flags.DEFINE_float('log',.01,'probability of writing a tensorflow log at each timestep')
 flags.DEFINE_integer('bsize',32,'minibatch size')
 flags.DEFINE_bool('async',True,'update policy and q function concurrently')
 flags.DEFINE_bool('batch_norm',False,'execute batch normalization over network layers')
+flags.DEFINE_integer('iter', 5, 'train iterations each timestep')
 
 # ...
 # TODO: make command line options
@@ -233,7 +235,8 @@ class Agent:
         # Train Q on warmup
         obs, act, g_act, rew, ob2, term2, info = self.rm.minibatch(size=FLAGS.bsize)
         # self._train_q(obs,act,rew,ob2,term2, log = (np.random.rand() < FLAGS.log), global_step=self.t)
-        self._train_q(obs, act, g_act, rew, ob2, term2, True, log = (np.random.rand() < FLAGS.log), global_step=self.t)
+        for i in xrange(FLAGS.iter):
+          self._train_q(obs, act, g_act, rew, ob2, term2, True, log = (np.random.rand() < FLAGS.log), global_step=self.t)
 
       # save parameters etc.
       # if (self.t+45000) % 50000 == 0: # TODO: correct
@@ -246,12 +249,14 @@ class Agent:
 
     if FLAGS.async:
       # self._train(obs,act,rew,ob2,term2, log = log, global_step=self.t)
-      self._train(obs, act, g_act, rew, ob2, term2, True, log = log, global_step=self.t)
+      for i in xrange(FLAGS.iter):
+        self._train(obs, act, g_act, rew, ob2, term2, True, log = log, global_step=self.t)
     else:
       # self._train_q(obs,act,rew,ob2,term2, log = log, global_step=self.t)
       # self._train_p(obs, log = log, global_step=self.t)
-      self._train_q(obs, act, g_act, rew, ob2, term2, True, log=log, global_step=self.t)
-      self._train_p(obs, True, log = log, global_step=self.t)
+      for i in xrange(FLAGS.iter):
+        self._train_q(obs, act, g_act, rew, ob2, term2, True, log=log, global_step=self.t)
+        self._train_p(obs, True, log = log, global_step=self.t)
 
   def write_scalar(self,tag,val):
     s = tf.Summary(value=[tf.Summary.Value(tag=tag,simple_value=val)])

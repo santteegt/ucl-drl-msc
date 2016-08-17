@@ -72,9 +72,8 @@ Running the environment
 ======
 
 ```bash
-(venv)$ cd src
-(venv)$ mkdir ../ddpg-results
-(venv)$ python run.py --outdir ../ddpg-results/experiment1 --env InvertedDoublePendulum-v1
+(venv)$ mkdir ddpg-results
+(venv)$ python src/run.py --outdir ddpg-results/experiment1 --env CollaborativeFiltering-v0
 ```
 
 License and Version

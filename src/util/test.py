@@ -22,7 +22,7 @@ def test():
 
             # print(info)
             if done:
-                R.append(rew / (t + 1))
+                R.append(rew)
                 print("Episode finished after {} timesteps. Average Reward {}".format(t+1, np.mean(R)))
                 break
         print "Episode {} Average Reward per user: {}".format(i_episode, rew)

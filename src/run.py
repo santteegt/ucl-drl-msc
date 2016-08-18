@@ -22,6 +22,7 @@ flags.DEFINE_integer('total',1000000,'total training time')
 flags.DEFINE_float('monitor',.05,'probability of monitoring a test episode')
 flags.DEFINE_bool('wolpertinger',False,'Train critic using the full Wolpertinger policy')
 flags.DEFINE_integer('wp_total_actions', 1000000, 'total number of actions to discretize under the Wolpertinger policy')
+flags.DEFINE_bool('skip_action_space_norm', False, 'Skip action space normalization')
 # ...
 # TODO: make command line options
 
@@ -37,7 +38,7 @@ class Experiment:
     self.t_test = 0
 
     # create filtered environment
-    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env))
+    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env), skip_action_space_norm=FLAGS.skip_action_space_norm)
     # self.env = gym.make(FLAGS.env)
     
     self.env.monitor.start(FLAGS.outdir+'/monitor/',video_callable=lambda _: False)
@@ -78,6 +79,7 @@ class Experiment:
       # evaluate required number of episodes for gym and end training when above threshold
       if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
         avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)]) # trials???
+        print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
         if avr > self.env.spec.reward_threshold:
           break
 

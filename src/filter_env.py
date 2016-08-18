@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 
-def makeFilteredEnv(env):
+def makeFilteredEnv(env, skip_action_space_norm=False):
   """ crate a new environment class with actions and states normalized to [-1,1] """
   acsp = env.action_space
   obsp = env.observation_space
@@ -48,10 +48,11 @@ def makeFilteredEnv(env):
       # Check and assign transformed spaces
       self.observation_space = gym.spaces.Box(self.filter_observation(obsp.low),
                                               self.filter_observation(obsp.high))
-      self.action_space = gym.spaces.Box(-np.ones_like(acsp.high),np.ones_like(acsp.high))
-      def assertEqual(a,b): assert np.all(a == b), "{} != {}".format(a,b)
-      assertEqual(self.filter_action(self.action_space.low), acsp.low)
-      assertEqual(self.filter_action(self.action_space.high), acsp.high)
+      if not skip_action_space_norm:
+        self.action_space = gym.spaces.Box(-np.ones_like(acsp.high),np.ones_like(acsp.high))
+        def assertEqual(a,b): assert np.all(a == b), "{} != {}".format(a,b)
+        assertEqual(self.filter_action(self.action_space.low), acsp.low)
+        assertEqual(self.filter_action(self.action_space.high), acsp.high)
 
     def filter_observation(self,obs):
       return (obs-self.o_c) / self.o_sc

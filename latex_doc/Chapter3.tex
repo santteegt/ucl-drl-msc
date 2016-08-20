@@ -1,5 +1,5 @@
 \chapter{Models}
-\label{chapterlabel3}
+\label{sec:chapterlabel3}
 
 \section{Na\"{i}ve Model using Matrix Factorization}
 
@@ -25,5 +25,15 @@ Collect user rating rh and update p(? | Dh)
 \subsection{Evaluation}
 
 *For insights and arguments, follow \textbf{Recommender systems survey}
+
+%\subsection{OpenAI Gym: a Reinforcement Learning Toolkit}
+%
+%OpenAI Gym\footnote{\url{https://gym.openai.com/}} is a toolkit for developing and comparing reinforcement learning algorithms[***](OpenAI Gym). It includes a growing collection of benchmark problems that expose a common interface that abstracts the RL framework described above. It focuses on the episodic setting of reinforcement learning, where the agent?s experience is broken down into a series of episodes. During each episode, the agent?s initial state is randomly sampled from a distribution, and the interaction proceeds until the environment reaches a terminal state. The final goal in OpenAI Gym is to maximize the expectation of total reward per episode, and to achieve a high level of performance in as few episodes as possible.
+%
+%The design of the framework is based on the authors? experience developing and comparing reinforcement learning algorithms. It manages two core concepts: (1) a free-to-code \textit{agent} that maximizes the convenience for users allowing them to implement different styles of agent interface; and (2) a common \textit{environment} interface that ease the implement and testing of different reinforcement learning problems under the same framework. Moreover, environments are strictly versioned in order to maintain the consistency in the results obtained by previously implemented agents; and are instrumented with a configurable monitor interface, which keeps track of every time step during simulation.
+%
+%In general, OpenAI Gym contains a collection of Partially Observed MDP Environments (POMDPs). After performing an action step in an environment, its interface returns the observation of current state, reward achieved by the action performed, a done flag indicating if an episode ends (and therefore, needs to be reset), and an information object containing useful information for debugging and learning. Furthermore, environments come with first-class space objects that describe the valid actions and observations. Such spaces can be defined as a \textit{discrete} object allowing a fixed range of non-negative numbers, or as an n-dimensional \textit{box space} for representing continuous spaces.
+%
+%On the other hand, the measure of performance in a RL algorithm under an environment can be measured along two axes: \textit{final performance} or average reward per episode, after learning is complete; and, \textit{sample complexity} or the amount of time it takes to learn. The latter can be measured in multiple ways, for example, by counting the number of episodes until reaching a threshold level of average performance. Naturally, this threshold is chosen per-environment in an ad-hoc way. In addition, the OpenAI Gym website allows users to compare the performance of their algorithms in a way to collaborate with each other rather than a competition.
 
 

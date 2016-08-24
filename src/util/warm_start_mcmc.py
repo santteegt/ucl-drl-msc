@@ -8,6 +8,7 @@ import argparse
 import os
 from matplotlib import pyplot as plt
 import time
+from sklearn.metrics import precision_recall_fscore_support
 
 parser = argparse.ArgumentParser(description='Transform Movielens data set to lightsvm format.')
 parser.add_argument('base_dir', type=str, help='Base directory')
@@ -16,7 +17,7 @@ parser.add_argument('--kfold', type=bool, default=False, help='Process k-fold cr
 parser.add_argument('--plot', type=bool, default=False, help='Plot RMSE and parameters')
 parser.add_argument('--iter', type=int, default=50, help='Number of samples for MCMC init')
 parser.add_argument('--rank', type=int, default=8, help='Dimensionality of FM latent vectors')
-parser.add_argument('--std-dev', type=float, default=0.1, help='Initial Standard Deviation')
+parser.add_argument('--std-dev', type=float, default=0.2, help='Initial Standard Deviation')
 
 # parameters
 n_iter = 50
@@ -26,65 +27,94 @@ rank = 8
 seed = 123
 step_size = 1
 # std_dev = 0.1
+
+# best params for k-fold
+# best approach: retrained -> RMSE: 1.12663180136
 std_dev = 0.2
 
+# best params for cross validation 80/20 split
+# best approach: warm-start -> RMSE: 1.04212147998
+std_dev = 0.2
 
-def runFM(X_train, y_train, X_test, y_test):
-    """
-    X_train = sp.csc_matrix(np.array([[6, 1],
-                                [2, 3],
-                                [3, 0],
-                                [6, 1],
-                                [4, 5]]), dtype=np.float64)
-    y_train = np.array([298, 266, 29, 298, 848], dtype=np.float64)
-    X_test = X_train
-    y_test = y_train
-    """
+class FactorizationMachine(object):
 
-    """
-    X, y, coef = make_user_item_regression(label_stdev=.4, random_state=seed)
-    from sklearn.cross_validation import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.33, random_state=seed)
-    X_train = sp.csc_matrix(X_train)
-    X_test = sp.csc_matrix(X_test)
-    X_test = X_train
-    y_test = y_train
-    """
+    def __init__(self):
+        self.fm_wu = None
+        self.fm = None
 
-    start_time = time.time()
 
-    fm = mcmc.FMRegression(n_iter=0, rank=rank, random_state=seed, init_stdev=std_dev)
-    # initalize coefs
-    fm.fit_predict(X_train, y_train, X_test)
+    def runFM(self, X_train, y_train, X_test, y_test):
+        """
+        X_train = sp.csc_matrix(np.array([[6, 1],
+                                    [2, 3],
+                                    [3, 0],
+                                    [6, 1],
+                                    [4, 5]]), dtype=np.float64)
+        y_train = np.array([298, 266, 29, 298, 848], dtype=np.float64)
+        X_test = X_train
+        y_test = y_train
+        """
 
-    rmse_test = []
-    rmse_new = []
-    hyper_param = np.zeros((n_iter -1, 3 + 2 * rank), dtype=np.float64)
-    for nr, i in enumerate(range(1, n_iter)):
-        fm.random_state = i * seed
-        y_pred = fm.fit_predict(X_train, y_train, X_test, n_more_iter=step_size)
-        rmse_test.append(np.sqrt(mean_squared_error(y_pred, y_test)))
-        hyper_param[nr, :] = fm.hyper_param_
+        """
+        X, y, coef = make_user_item_regression(label_stdev=.4, random_state=seed)
+        from sklearn.cross_validation import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.33, random_state=seed)
+        X_train = sp.csc_matrix(X_train)
+        X_test = sp.csc_matrix(X_test)
+        X_test = X_train
+        y_test = y_train
+        """
+        print "params => iter: {} - rank: {} - std-dev: {} - seed: {}".format(n_iter, rank, std_dev, seed)
 
-    print '------- restart ----------'
-    values = np.arange(1, n_iter)
-    rmse_test_re = []
-    hyper_param_re = np.zeros((len(values), 3 + 2 * rank), dtype=np.float64)
-    for nr, i in enumerate(values):
-        fm = mcmc.FMRegression(n_iter=i, rank=rank, random_state=seed)
-        y_pred = fm.fit_predict(X_train, y_train, X_test)
-        rmse_test_re.append(np.sqrt(mean_squared_error(y_pred, y_test)))
-        hyper_param_re[nr, :] = fm.hyper_param_
+        start_time = time.time()
 
-    print "Process finished in {} seconds".format(time.time() - start_time)
-    print "Min RMSE on warmup model: {}".format(rmse_test[-1])
-    print "Min RMSE on retrained model: {}".format(rmse_test_re[-1])
+        self.fm_wu = mcmc.FMRegression(n_iter=0, rank=rank, random_state=seed)#, init_stdev=std_dev)
+        # initalize coefs
+        self.fm_wu.fit_predict(X_train, y_train, X_test)
 
-    return rmse_test, hyper_param, rmse_test_re, hyper_param_re
+        rmse_test = []
+        rmse_new = []
+        hyper_param = np.zeros((n_iter -1, 3 + 2 * rank), dtype=np.float64)
+        for nr, i in enumerate(range(1, n_iter)):
+            self.fm_wu.random_state = i * seed
+            y_pred = self.fm_wu.fit_predict(X_train, y_train, X_test, n_more_iter=step_size)
+            rmse_test.append(np.sqrt(mean_squared_error(y_pred, y_test)))
+            hyper_param[nr, :] = self.fm_wu.hyper_param_
+
+        print '------- restart ----------'
+        values = np.arange(1, n_iter)
+        rmse_test_re = []
+        hyper_param_re = np.zeros((len(values), 3 + 2 * rank), dtype=np.float64)
+        for nr, i in enumerate(values):
+            self.fm = mcmc.FMRegression(n_iter=i, rank=rank, random_state=seed)#, init_stdev=std_dev)
+            y_pred = self.fm.fit_predict(X_train, y_train, X_test)
+            rmse_test_re.append(np.sqrt(mean_squared_error(y_pred, y_test)))
+            hyper_param_re[nr, :] = self.fm.hyper_param_
+
+        print "Process finished in {} seconds".format(time.time() - start_time)
+        print "Min RMSE on warmup model: {}".format(rmse_test[-1])
+        print "Min RMSE on retrained model: {}".format(rmse_test_re[-1])
+
+        return rmse_test, hyper_param, rmse_test_re, hyper_param_re
+
+    def predict(self, X_test, y_test, warm_up=False):
+        """
+
+        :param X_test:
+        :param y_test:
+        :param warm_up:
+        :return:
+        """
+        true_label = np.array(y_test).astype(int)
+        predictions = self.fm_wu.predict(X_test) if warm_up else self.fm.predict(X_test)
+        predictions = np.round(predictions).astype(int)
+        precision, recall, f1, _ = precision_recall_fscore_support(true_label, predictions, beta=0.5, average='micro')
+        return precision, recall, f1
 
 
 if __name__ == "__main__":
+    inst = FactorizationMachine()
     args = parser.parse_args()
     base_dir = args.base_dir
     filename = args.file
@@ -117,12 +147,19 @@ if __name__ == "__main__":
     if not k_fold:
         X, y = load_svmlight_file(train_path)
         X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2, random_state=0)
+        # train_path = offset + "data/ml-100k/u1.base.libfm"
+        # test_path = offset + "data/ml-100k/u1.test.libfm"
+        # X_train, y_train = load_svmlight_file(train_path)
+        # X_test,  y_test= load_svmlight_file(test_path)
         X_train = sp.csc_matrix(X_train)
         X_test = sp.csc_matrix(X_test)
+        from sklearn.utils import shuffle
+        X_train, y_train = shuffle(X_train, y_train)
+        X_test, y_test = shuffle(X_test, y_test)
         # add padding for features not in test
         X_test = sp.hstack([X_test, sp.csc_matrix((X_test.shape[0], X_train.shape[1] - X_test.shape[1]))])
 
-        rmse_test, hyper_param, rmse_test_re, hyper_param_re = runFM(X_train, y_train, X_test, y_test)
+        rmse_test, hyper_param, rmse_test_re, hyper_param_re = inst.runFM(X_train, y_train, X_test, y_test)
     else:
         #perform 5-fold cross validation
         rmse_test_fold = []
@@ -148,7 +185,7 @@ if __name__ == "__main__":
                 X_train = sp.hstack([X_train, sp.csc_matrix((X_train.shape[0], X_test.shape[1] - X_train.shape[1]))])
 
             print "Executing {}-fold".format(i+1)
-            rmse_test, hyper_param, rmse_test_re, hyper_param_re = runFM(X_train, y_train, X_test, y_test)
+            rmse_test, hyper_param, rmse_test_re, hyper_param_re = inst.runFM(X_train, y_train, X_test, y_test)
             rmse_test_fold.append(rmse_test)
             hyper_param_fold.append(hyper_param)
             rmse_test_re_fold.append(rmse_test_re)
@@ -158,6 +195,15 @@ if __name__ == "__main__":
         hyper_param = np.sum(hyper_param_fold, axis=0) / k
         rmse_test_re = np.sum(rmse_test_re_fold, axis=0) / k
         hyper_param_re = np.sum(hyper_param_re_fold, axis=0) / k
+
+        print '------- Avg. results ----------'
+        print "Min RMSE on warmup model: {}".format(rmse_test[-1])
+        print "Min RMSE on retrained model: {}".format(rmse_test_re[-1])
+
+    p, r, f1 = inst.predict(X_test, y_test, warm_up=True)
+    print "Precision: {} - Recall: {} - F1 Score: {}".format(p, r, f1)
+    p, r, f1 = inst.predict(X_test, y_test, warm_up=False)
+    print "Precision: {} - Recall: {} - F1 Score: {}".format(p, r, f1)
 
     if args.plot:
 

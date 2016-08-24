@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description='Process Dataset for RS environment
 parser.add_argument('dataset', type=str, help='Dataset schema to load (e.g. Movielens or Netflix)')
 parser.add_argument('url', type=str, help='Directory to dataset files')
 parser.add_argument('--create-tmatrix', default=False, help='Whether to create or load the transition matrix.')
+parser.add_argument('--save-dat-file', default=False, help='Store rating matrix with item feature vector in the filesystem')
 
 datafiles = {"movielens100k": {"trmatrix": {"filename": "trmatrix",
                                            "column_names": ["_id", "count"],
@@ -40,15 +41,15 @@ class Dataset_Loader(object):
     def __del__(self):
         self.client.close()
 
-    def __init__(self, collection, url, create_trans_matrix=True):
+    def __init__(self, collection, url, create_trans_matrix=True, save_dat_file=False):
         self.dataset_dir = url
         self.client = MongoClient()
         # Database
         self.db = self.client['recommender']
         self.collection_suffix = str.lower(collection.strip())
         if create_trans_matrix:
-            self.word_embeddings()
-            self.create_transition_matrix()
+            self.word_embeddings(save_dat_file)
+            # self.create_transition_matrix()
             self.save_ratings()
 
     # def create_transition_matrix(self):
@@ -80,7 +81,7 @@ class Dataset_Loader(object):
     #     print(len(counts.keys()))
 
 
-    def word_embeddings(self):
+    def word_embeddings(self, save_dat_file):
         class MySentences(object):
             def __init__(self, data_frame):
                 self.data_frame = data_frame
@@ -102,15 +103,21 @@ class Dataset_Loader(object):
         # data['other_feat'] = data[data_set['combined_feat']].apply(lambda x: [x.values], axis=1)
         data['other_feat'] = [row for row in data[data_set['combined_feat']].values]
 
-        # Collection
-        collection = self.db['items_' + self.collection_suffix]
-        # sample = collection.find_one()
-        rs = collection.delete_many({})
-        print('Items Deleted: {}'.format(rs.deleted_count))
-        records = json.loads( data[['_id', 'embeddings', 'other_feat']].T.to_json() ).values()
-        data[['_id', 'embeddings', 'other_feat']].to_csv('items_collection.dat')
-        result = collection.insert_many(records)
-        print(result)
+        if not save_dat_file: # TODO: implement else condition
+            # Collection
+            collection = self.db['items_' + self.collection_suffix]
+            # sample = collection.find_one()
+            rs = collection.delete_many({})
+            print('Items Deleted: {}'.format(rs.deleted_count))
+            records = json.loads( data[['_id', 'embeddings', 'other_feat']].T.to_json() ).values()
+            result = collection.insert_many(records)
+            print(result)
+        else:
+            rows = []
+            for row in data[['_id', 'embeddings', 'other_feat']].values:
+                rows.append(np.hstack((row[0], row[1], row[2])))
+            np.savetxt("embeddings.csv", rows, fmt="%.19f", delimiter=",")
+            # data[['_id', 'embeddings', 'other_feat']].to_csv('items_collection.csv')
 
     def create_transition_matrix(self):
         table_name = 'trmatrix'
@@ -190,4 +197,4 @@ class Dataset_Loader(object):
 if __name__ == '__main__':
     # example parameters to run: --create-tmatrix True movielens100k    /Users/santteegt/Downloads/ml-100k
     args = parser.parse_args()
-    loader = Dataset_Loader(args.dataset, args.url, args.create_tmatrix)
+    loader = Dataset_Loader(args.dataset, args.url, args.create_tmatrix, args.save_dat_file)

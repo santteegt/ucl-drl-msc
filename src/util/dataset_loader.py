@@ -33,6 +33,28 @@ datafiles = {"movielens100k": {"trmatrix": {"filename": "trmatrix",
                                            "column_names": ["user_id", "item_id", "rating", "timestamp"],
                                            "separator": "\t", "header": None
                                            }
+                               },
+             "movielens1m": {
+                 # "trmatrix": {"filename": "trmatrix",
+                 #                           "column_names": ["_id", "count"],
+                 #                           "separator": "\\t", "header": None
+                 #                           },
+                               "items": {"filename": "movies.fixed.dat",
+                                         "column_names": ["_id", "embeddings", "unknown", "action", "adventure",
+                                                          "animation", "children's",
+                                                          "comedy", "crime", "documentary", "drama", "fantasy",
+                                                          "film-noir", "horror", "musical", "mistery", "romance",
+                                                          "sci-fi", "thriller", "war", "western"],
+                                         "combined_feat": ["unknown", "action", "adventure", "animation", "children's",
+                                                          "comedy", "crime", "documentary", "drama", "fantasy",
+                                                          "film-noir", "horror", "musical", "mistery", "romance",
+                                                          "sci-fi", "thriller", "war", "western"],
+                                         "separator": "|", "header": None
+                                         },
+                               "ratings": {"filename": "ratings.fixed.dat",
+                                           "column_names": ["user_id", "item_id", "rating", "timestamp"],
+                                           "separator": "::", "header": None
+                                           }
                                }
              }
 
@@ -49,8 +71,8 @@ class Dataset_Loader(object):
         self.collection_suffix = str.lower(collection.strip())
         if create_trans_matrix:
             self.word_embeddings(save_dat_file)
-            # self.create_transition_matrix()
-            self.save_ratings()
+            # self.create_transition_matrix() # TODO: no longer needed ?
+            # self.save_ratings() # TODO: no longer needed ?
 
     # def create_transition_matrix(self):
     #     dataset = datafiles[self.collection_suffix]['ratings']
@@ -80,8 +102,12 @@ class Dataset_Loader(object):
     #     print('Elapsed time: {} min'.format( ((time.time() - start_time)/60000)) )
     #     print(len(counts.keys()))
 
-
     def word_embeddings(self, save_dat_file):
+        """
+
+        :param save_dat_file:
+        :return:
+        """
         class MySentences(object):
             def __init__(self, data_frame):
                 self.data_frame = data_frame
@@ -96,8 +122,9 @@ class Dataset_Loader(object):
         raw_sentences = data['embeddings'].str.replace("\\(|\\)","").str.split(' ')
         sentences = MySentences(raw_sentences)
         start_time = time.time()
-        word2vec = gensim.models.Word2Vec(sentences, window=5, min_count=1, workers=4)
-        print('word2vec finished in {} secons'.format((time.time() - start_time) / 1000))
+        word2vec = gensim.models.Word2Vec(sentences, window=5, min_count=1, workers=4, sample=0.001)
+        word2vec.save_word2vec_format("../../data/word2vec-" + self.collection_suffix + ".model", binary=False)
+        print('word2vec finished in {} seconds'.format(time.time() - start_time))
 
         data['embeddings'] = raw_sentences.apply(lambda x: np.sum(word2vec[x], axis=0))
         # data['other_feat'] = data[data_set['combined_feat']].apply(lambda x: [x.values], axis=1)
@@ -116,10 +143,15 @@ class Dataset_Loader(object):
             rows = []
             for row in data[['_id', 'embeddings', 'other_feat']].values:
                 rows.append(np.hstack((row[0], row[1], row[2])))
-            np.savetxt("embeddings.csv", rows, fmt="%.19f", delimiter=",")
+            np.savetxt("../../data/embeddings-" + self.collection_suffix + ".csv", rows, fmt="%.19f", delimiter=",")
+            print "Embeddings successfully saved in the filesystem"
             # data[['_id', 'embeddings', 'other_feat']].to_csv('items_collection.csv')
 
     def create_transition_matrix(self):
+        """
+
+        :return:
+        """
         table_name = 'trmatrix'
         data_set = datafiles[self.collection_suffix][table_name]
         data = self.__read_csv_data(table_name).sort(['_id'])

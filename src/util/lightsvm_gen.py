@@ -59,5 +59,6 @@ if __name__ == "__main__":
             out_f.write(line)
     out_f.close()
     f.close()
-    gen_k_fold(base_dir, data)
+    if run_fold:
+        gen_k_fold(base_dir, data)
     print "Process finished in {} seconds".format(time.time() - start_time)

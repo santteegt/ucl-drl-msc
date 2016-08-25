@@ -122,7 +122,7 @@ class Dataset_Loader(object):
         raw_sentences = data['embeddings'].str.replace("\\(|\\)","").str.split(' ')
         sentences = MySentences(raw_sentences)
         start_time = time.time()
-        word2vec = gensim.models.Word2Vec(sentences, window=5, min_count=1, workers=4, sample=0.001)
+        word2vec = gensim.models.Word2Vec(sentences, window=10, min_count=1, workers=4, sample=0.001)
         word2vec.save_word2vec_format("../../data/word2vec-" + self.collection_suffix + ".model", binary=False)
         print('word2vec finished in {} seconds'.format(time.time() - start_time))
 
@@ -145,7 +145,7 @@ class Dataset_Loader(object):
                 rows.append(np.hstack((row[0], row[1], row[2])))
             np.savetxt("../../data/embeddings-" + self.collection_suffix + ".csv", rows, fmt="%.19f", delimiter=",")
             print "Embeddings successfully saved in the filesystem"
-            # data[['_id', 'embeddings', 'other_feat']].to_csv('items_collection.csv')
+            data[['_id', 'embeddings', 'other_feat']].to_csv('../../data/items_collection.csv')
 
     def create_transition_matrix(self):
         """

@@ -1,6 +1,20 @@
 import gym
 import numpy as np
-def test():
+import sys
+import os
+
+def load_action_set(filename, i, action_shape):
+    actions = np.zeros((i, action_shape))
+    row = 0
+    with open(filename, mode='r') as f:
+        for line in f:
+            actions[row, ...] = line.split(',')[1:]
+            row += 1
+    return actions
+
+
+def test(wolpertinger=False, k_prop=1):
+    assert k_prop > 0, "Proportion for nearest neighbors must be non zero"
     env = gym.make('CollaborativeFiltering-v0')
     # env = gym.make('CartPole-v0')
     # env.monitor.start('/tmp/cf-1')
@@ -8,6 +22,15 @@ def test():
     # for _ in range(1000):
     #     env.render()
     #     env.step(env.action_space.sample()) # take a random action
+    n_actions = 3883
+    policy = env.action_space.sample
+    import wolpertinger as wp
+    if wolpertinger:
+        action_set = load_action_set("data/embeddings-movielens1m.csv", n_actions, 119)
+        policy = wp.Wolpertinger(env, i=n_actions, nn_index_file="indexStorageTest", action_set=action_set).g
+
+    k = round(n_actions * k_prop) if k_prop < 1 else k_prop
+
     R = []
     for i_episode in range(2000):
         rew = 0.
@@ -15,7 +38,10 @@ def test():
         for t in range(100):
             env.render()
             # print(observation)
-            action = env.action_space.sample()
+            # action = env.action_space.sample()
+
+            action = policy(env.action_space.sample(), k=int(k)) if wolpertinger else policy()
+            action = action[0][0] if wolpertinger else action
             observation, reward, done, info = env.step(action)
             rew += reward
 
@@ -39,4 +65,5 @@ def test():
     env.monitor.close()
 
 if __name__ == "__main__":
-    test()
+    sys.path.append(os.path.dirname(__file__) + "/../")
+    test(wolpertinger=True, k_prop=0.05)

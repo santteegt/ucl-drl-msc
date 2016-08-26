@@ -22,6 +22,7 @@ flags.DEFINE_integer('total',1000000,'total training time')
 flags.DEFINE_float('monitor',.05,'probability of monitoring a test episode')
 flags.DEFINE_bool('wolpertinger',False,'Train critic using the full Wolpertinger policy')
 flags.DEFINE_integer('wp_total_actions', 1000000, 'total number of actions to discretize under the Wolpertinger policy')
+flags.DEFINE_string('wp_action_set_file', 'data/embeddings-movielens1m.csv', 'Embeddings file for Knn index generation')
 flags.DEFINE_bool('skip_action_space_norm', False, 'Skip action space normalization')
 # ...
 # TODO: make command line options
@@ -54,7 +55,10 @@ class Experiment:
 
     wolp = None
     if FLAGS.wolpertinger:
-      wolp = wp.Wolpertinger(self.env, i=FLAGS.wp_total_actions).g
+      wolp = wp.Wolpertinger(self.env, i=FLAGS.wp_total_actions,
+                             action_set=wp.load_action_set(FLAGS.wp_action_set_file,
+                                                           i=FLAGS.wp_total_actions, action_shape=dimA[0])
+                             ).g
 
     self.agent = ddpg.Agent(dimO=dimO, dimA=dimA, custom_policy=FLAGS.wolpertinger,
                             env_dtype=str(self.env.action_space.high.dtype))
@@ -71,7 +75,9 @@ class Experiment:
         R.append(self.run_episode(test=True, monitor=(self.t_test - T < FLAGS.monitor * FLAGS.test), custom_policy=wolp))
         self.t_test += 1
       avr = np.mean(R)
-      print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
+      # print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
+      with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+        f.write('Average test return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
       # save return
       returns.append((self.t_train, avr))
       np.save(FLAGS.outdir+"/returns.npy",returns)
@@ -79,7 +85,9 @@ class Experiment:
       # evaluate required number of episodes for gym and end training when above threshold
       if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
         avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)]) # trials???
-        print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
+        # print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
+        with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+          f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
         if avr > self.env.spec.reward_threshold:
           break
 
@@ -90,9 +98,12 @@ class Experiment:
         R.append(self.run_episode(test=False, custom_policy=wolp))
         self.t_train += 1
       avr = np.mean(R)
-      print('Average training return\t{} after {} timesteps of training'.format(avr,self.t_train))
+      # print('Average training return\t{} after {} timesteps of training'.format(avr,self.t_train))
+      with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+        f.write('Average training return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
 
     self.env.monitor.close()
+    f.close()
     # upload results
     if FLAGS.upload:
       gym.upload(FLAGS.outdir+"/monitor",algorithm_id = GYM_ALGO_ID)
@@ -122,7 +133,8 @@ class Experiment:
         # for i in range(len(A_k)):
         #   _, rew_g[i], term_g[i], _ = self.env.step(A_k[i])
         maxq_index = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
-        g_action = A_k[maxq_index[0]]
+        # g_action = A_k[maxq_index[0]]
+        g_action = A_k[maxq_index]
         action_to_perform = g_action
         # res = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
         # print('continuous action: {} discretized action: {}'.format(action, g_action))
@@ -143,6 +155,7 @@ class Experiment:
       R += reward
       t += 1
 
+    self.env.render(mode='human')
 
     return R
 

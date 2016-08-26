@@ -41,7 +41,7 @@ def test(wolpertinger=False, k_prop=1):
             # action = env.action_space.sample()
 
             action = policy(env.action_space.sample(), k=int(k)) if wolpertinger else policy()
-            action = action[0][0] if wolpertinger else action
+            action = action[0] if wolpertinger else action
             observation, reward, done, info = env.step(action)
             rew += reward
 

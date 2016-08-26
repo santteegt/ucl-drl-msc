@@ -92,6 +92,9 @@ class Wolpertinger(object):
 
         print "Knn index {} using sklearn backend. Configuration params: {}".format(
             "created" if FLAGS.create_index else "loaded", self.__alg.get_params())
+        # action = np.loadtxt("testvector")
+        # rs = self.g(action, k=194)
+        # print "done"
 
     def g(self, action, k=None):
         '''
@@ -110,6 +113,7 @@ class Wolpertinger(object):
             results, dists = self.__flann.nn_index(action, nearest_neighbors, checks=checks)
         else:
             dists, results = self.__alg.kneighbors([action], nearest_neighbors)
+            results = results[0]
         return [self.__A[val] for val in results]
 
     @property

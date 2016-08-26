@@ -76,9 +76,17 @@ class Agent:
 
     # for Wolpertinger full policy
     act_cont = tf.placeholder(env_dtype, [None] + dimA, "action_cont_space")
-    g_actions = tf.placeholder(env_dtype, [FLAGS.knn] + dimA, "knn_actions")
-    rew_g = tf.placeholder(env_dtype, [FLAGS.knn] + dimA, "rew")
-    term_g = tf.placeholder(tf.bool, [FLAGS.knn], "term_g")
+
+    # g_actions = tf.placeholder(env_dtype, [FLAGS.knn] + dimA, "knn_actions")
+    g_actions = tf.placeholder(env_dtype, [None] + dimA, "knn_actions")
+
+    # rew_g = tf.placeholder(env_dtype, [FLAGS.knn] + dimA, "rew")
+
+    # rew_g = tf.placeholder(env_dtype, [FLAGS.knn], "rew_g")
+    # term_g = tf.placeholder(tf.bool, [FLAGS.knn], "term_g")
+    rew_g = tf.placeholder(env_dtype, [1], "rew_g")
+    term_g = tf.placeholder(tf.bool, [1], "term_g")
+
     # g_dot_f = tf.mul(g_actions, act_cont, "g_dot_f")
     g_dot_f = g_actions
     q_eval, _ = nets.qfunction(obs, g_dot_f, self.theta_q) if not FLAGS.batch_norm else nets.qfunction_norm(obs,
@@ -86,8 +94,9 @@ class Agent:
                                                                                                             self.theta_q,
                                                                                                             is_training,
                                                                                                             reuse=True)
-    wolpertinger_policy = tf.stop_gradient( tf.argmax( tf.select(term_g, rew_g, rew_g + discount * q_eval),
-                                                           dimension=0, name="q_max") )
+    # wolpertinger_policy = tf.stop_gradient( tf.argmax( tf.select(term_g, rew_g, rew_g + discount * q_eval),
+    #                                                        dimension=0, name="q_max") )
+    wolpertinger_policy = tf.stop_gradient(tf.select(term_g, rew_g, rew_g + discount * q_eval))
 
     # test
     # q, sum_q = nets.qfunction(obs, act_test, self.theta_q)
@@ -214,9 +223,17 @@ class Agent:
   def wolpertinger_policy(self, action_cont, g_actions, rew_g, term_g):
     obs = np.expand_dims(self.observation, axis=0)
     action_cont = np.expand_dims(action_cont, axis=0)
-    rew_g = np.expand_dims(rew_g, axis=0)
+    # rew_g = np.expand_dims(rew_g, axis=0)
     # return np.asarray( self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g) )
-    return self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g)[0]
+    i = 0
+    q_values = []
+    for g_action in g_actions:
+      g_action = np.expand_dims(g_action, axis=0)
+      q_values.append(self._wolpertinger_p(obs, action_cont, g_action, [rew_g[i]], [term_g[i]])[0])
+      i += 1
+
+    # return self._wolpertinger_p(obs, action_cont, g_actions, rew_g, term_g)[0]
+    return np.argmax(q_values)
 
   def observe(self, rew, term, obs2, test=False, g_action=None):
 

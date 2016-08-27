@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 
-def makeFilteredEnv(env, skip_action_space_norm=False):
+def makeFilteredEnv(env, skip_action_space_norm=False, wolpertinger=False):
   """ crate a new environment class with actions and states normalized to [-1,1] """
   acsp = env.action_space
   obsp = env.observation_space
@@ -49,7 +49,8 @@ def makeFilteredEnv(env, skip_action_space_norm=False):
       self.observation_space = gym.spaces.Box(self.filter_observation(obsp.low),
                                               self.filter_observation(obsp.high))
       if not skip_action_space_norm:
-        self.action_space = gym.spaces.Box(-np.ones_like(acsp.high),np.ones_like(acsp.high))
+        self.action_space = gym.spaces.Box(-np.ones_like(acsp.high),np.ones_like(acsp.high)) if not wolpertinger else \
+          gym.spaces.SimBox(-np.ones_like(acsp.high), np.ones_like(acsp.high), env=env, top_n=env.action_space.top_n)
         def assertEqual(a,b): assert np.all(a == b), "{} != {}".format(a,b)
         assertEqual(self.filter_action(self.action_space.low), acsp.low)
         assertEqual(self.filter_action(self.action_space.high), acsp.high)

@@ -21,6 +21,8 @@ flags.DEFINE_bool('tot',False,'train on test data')
 flags.DEFINE_integer('total',1000000,'total training time')
 flags.DEFINE_float('monitor',.05,'probability of monitoring a test episode')
 flags.DEFINE_bool('wolpertinger',False,'Train critic using the full Wolpertinger policy')
+flags.DEFINE_bool('egreedy_expl',False,'Perform epsilon greedy exploration')
+flags.DEFINE_float('epsilon', 0.2, 'epsilon probability for an epsilon greedy exploration')
 flags.DEFINE_integer('wp_total_actions', 1000000, 'total number of actions to discretize under the Wolpertinger policy')
 flags.DEFINE_string('wp_action_set_file', 'data/embeddings-movielens1m.csv', 'Embeddings file for Knn index generation')
 flags.DEFINE_bool('skip_action_space_norm', False, 'Skip action space normalization')
@@ -39,7 +41,8 @@ class Experiment:
     self.t_test = 0
 
     # create filtered environment
-    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env), skip_action_space_norm=FLAGS.skip_action_space_norm)
+    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env), skip_action_space_norm=FLAGS.skip_action_space_norm,
+                                          wolpertinger=FLAGS.wolpertinger)
     # self.env = gym.make(FLAGS.env)
     
     self.env.monitor.start(FLAGS.outdir+'/monitor/',video_callable=lambda _: False)
@@ -84,7 +87,9 @@ class Experiment:
 
       # evaluate required number of episodes for gym and end training when above threshold
       if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
-        avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)]) # trials???
+        # TODO: it is supposed that when testing the model does not have to use the full wolpertinger policy?
+        # TODO: to avoid the item not found exception in environment, custom policy is being sent to the run_episode
+        avr = np.mean([self.run_episode(test=True, custom_policy=wolp) for _ in range(self.env.spec.trials)]) # trials???
         # print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
         with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
           f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
@@ -115,29 +120,36 @@ class Experiment:
     R = 0. # return
     t = 1
     term = False
+    # count = expl = 0
     while not term:
       # self.env.render(mode='human')
 
-      if FLAGS.random:
-        action = self.env.action_space.sample()
+      if FLAGS.random: #use random agent
+        action_to_perform = self.env.action_space.sample()
+        g_action = action_to_perform
       else:
-        action = self.agent.act(test=test)
+        if FLAGS.egreedy_expl and np.random.uniform() < FLAGS.epsilon:
+          action_to_perform = self.env.action_space.sample()
+          g_action = action_to_perform
+          # expl += 1
+        else:
+          # count += 1
+          action = self.agent.act(test=test)
 
-      # Run Wolpertinger discretization
-      action_to_perform = action
-      g_action = None
-      if FLAGS.wolpertinger and custom_policy is not None:
-        A_k = custom_policy(action)
-        rew_g = R * np.ones(len(A_k), dtype=self.env.action_space.high.dtype)
-        term_g = np.zeros(len(A_k), dtype=np.bool)
-        # for i in range(len(A_k)):
-        #   _, rew_g[i], term_g[i], _ = self.env.step(A_k[i])
-        maxq_index = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
-        # g_action = A_k[maxq_index[0]]
-        g_action = A_k[maxq_index]
-        action_to_perform = g_action
-        # res = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
-        # print('continuous action: {} discretized action: {}'.format(action, g_action))
+          # Run Wolpertinger discretization
+          action_to_perform = action
+          if FLAGS.wolpertinger and custom_policy is not None:
+            A_k = custom_policy(action)
+            rew_g = R * np.ones(len(A_k), dtype=self.env.action_space.high.dtype)
+            term_g = np.zeros(len(A_k), dtype=np.bool)
+            # for i in range(len(A_k)):
+            #   _, rew_g[i], term_g[i], _ = self.env.step(A_k[i])
+            maxq_index = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
+            # g_action = A_k[maxq_index[0]]
+            g_action = A_k[maxq_index]
+            action_to_perform = g_action
+            # res = self.agent.wolpertinger_policy(action, A_k, rew_g, term_g)
+            # print('continuous action: {} discretized action: {}'.format(action, g_action))
 
 
       # observation, reward, term, info = self.env.step(action)
@@ -154,6 +166,9 @@ class Experiment:
 
       R += reward
       t += 1
+
+    # with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+    #     f.write('Wolpertinger actions: {} Exploration actions: {}\n'.format(count, expl))
 
     self.env.render(mode='human')
 

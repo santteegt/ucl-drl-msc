@@ -84,7 +84,7 @@ class Experiment:
 
       # evaluate required number of episodes for gym and end training when above threshold
       if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
-        avr = np.mean([self.run_episode(test=True, custom_policy=wolp) for _ in range(self.env.spec.trials)]) # trials???
+        avr = np.mean([self.run_episode(test=True) for _ in range(self.env.spec.trials)]) # trials???
         # print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
         with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
           f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
@@ -126,7 +126,7 @@ class Experiment:
       # Run Wolpertinger discretization
       action_to_perform = action
       g_action = None
-      if FLAGS.wolpertinger:
+      if FLAGS.wolpertinger and custom_policy is not None:
         A_k = custom_policy(action)
         rew_g = R * np.ones(len(A_k), dtype=self.env.action_space.high.dtype)
         term_g = np.zeros(len(A_k), dtype=np.bool)

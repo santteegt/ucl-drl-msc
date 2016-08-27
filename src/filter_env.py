@@ -5,7 +5,7 @@ def makeFilteredEnv(env, skip_action_space_norm=False):
   """ crate a new environment class with actions and states normalized to [-1,1] """
   acsp = env.action_space
   obsp = env.observation_space
-  if not type(acsp)==gym.spaces.box.Box:
+  if not type(acsp)==gym.spaces.box.Box and not type(acsp)==gym.spaces.simbox.SimBox:
     raise RuntimeError('Environment with continous action space (i.e. Box) required.')
   if not type(obsp)==gym.spaces.box.Box:
     raise RuntimeError('Environment with continous observation space (i.e. Box) required.')

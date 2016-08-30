@@ -31,7 +31,7 @@ ou_theta = 0.15
 ou_sigma = 0.2
 rm_size = 500000
 # rm_dtype = 'float32'
-threads = 4
+threads = 8
 
 
 class Agent:
@@ -54,7 +54,7 @@ class Agent:
     # start tf session
     self.sess = tf.Session(config=tf.ConfigProto(
       inter_op_parallelism_threads=threads,
-      log_device_placement=False,
+      log_device_placement=True,
       allow_soft_placement=True))
 
     # create tf computational graph

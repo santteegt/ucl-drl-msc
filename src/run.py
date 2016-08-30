@@ -74,27 +74,28 @@ class Experiment:
       # test
       T = self.t_test
       R = []
-      while self.t_test - T < FLAGS.test:
-        R.append(self.run_episode(test=True, monitor=(self.t_test - T < FLAGS.monitor * FLAGS.test), custom_policy=wolp))
-        self.t_test += 1
-      avr = np.mean(R)
-      # print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
-      with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
-        f.write('Average test return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
-      # save return
-      returns.append((self.t_train, avr))
-      np.save(FLAGS.outdir+"/returns.npy",returns)
-
-      # evaluate required number of episodes for gym and end training when above threshold
-      if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
-        # TODO: it is supposed that when testing the model does not have to use the full wolpertinger policy?
-        # TODO: to avoid the item not found exception in environment, custom policy is being sent to the run_episode
-        avr = np.mean([self.run_episode(test=True, custom_policy=wolp) for _ in range(self.env.spec.trials)]) # trials???
-        # print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
+      if self.t_train - T > 0 or FLAGS.train == 0:
+        while self.t_test - T < FLAGS.test:
+          R.append(self.run_episode(test=True, monitor=(self.t_test - T < FLAGS.monitor * FLAGS.test), custom_policy=wolp))
+          self.t_test += 1
+        avr = np.mean(R)
+        # print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
         with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
-          f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
-        if avr > self.env.spec.reward_threshold:
-          break
+          f.write('Average test return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
+        # save return
+        returns.append((self.t_train, avr))
+        np.save(FLAGS.outdir+"/returns.npy",returns)
+
+        # evaluate required number of episodes for gym and end training when above threshold
+        if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
+          # TODO: it is supposed that when testing the model does not have to use the full wolpertinger policy?
+          # TODO: to avoid the item not found exception in environment, custom policy is being sent to the run_episode
+          avr = np.mean([self.run_episode(test=True, custom_policy=wolp) for _ in range(self.env.spec.trials)]) # trials???
+          # print('TRIALS => Average return{}\t Reward Threshold {}'.format(avr, self.env.spec.reward_threshold))
+          with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+            f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
+          if avr > self.env.spec.reward_threshold:
+            break
 
       # train
       T = self.t_train

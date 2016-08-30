@@ -7,6 +7,7 @@ import filter_env
 import ddpg
 import wolpertinger as wp
 import tensorflow as tf
+import time
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_boolean('upload',False,'upload to gym (requires evironment variable OPENAI_GYM_API_KEY)')
@@ -100,13 +101,16 @@ class Experiment:
       # train
       T = self.t_train
       R = []
+      start_time = time.time()
       while self.t_train - T < FLAGS.train:
         R.append(self.run_episode(test=False, custom_policy=wolp))
         self.t_train += 1
+      end_time = time.time()
       avr = np.mean(R)
       # print('Average training return\t{} after {} timesteps of training'.format(avr,self.t_train))
       with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
-        f.write('Average training return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
+        f.write('Average training return\t{} after {} timesteps of training. Batch time: {} sec.\n'
+                .format(avr, self.t_train, end_time - start_time))
 
     self.env.monitor.close()
     f.close()

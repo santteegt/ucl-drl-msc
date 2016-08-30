@@ -1,69 +1,85 @@
 \chapter{Models}
 \label{sec:chapterlabel3}
 
-\section{Na\"{i}ve Model using Matrix Factorization}
+This chapter will develop a reinforcement learning agent definition to solve the recommendation problem using deep learning techniques. After describing the main motivation behind this approach, details of the baseline model derived from previous work on the DDPG algorithm is presented, and finally, as the contribution to this MSc. project, a bayesian personalised ranking model based on factorization machines is introduced into the deep learning algorithm to try to enhance the policy architecture and therefore the system recommendations.
 
+\section{Motivation}
 
+Previously, reinforcement learning agents have received little attention to solve the recommendation tasks due to their action domain becomes intractable in current large-scale recommender systems. However, the great performance reached in several control tasks by end-to-end RL agents based on deep neural networks\cite{mnih2015human} have demonstrated the capacity to continuously adapt their behaviour without any human intervention and solve challenging human tasks. More interestingly, a single trained general-purpose deep reinforcement agent (using the same hyperparameters) was able to converge and perform well on several task environments with different action space definitions. Consequently, a new opened research area has been using recent breakthroughs in training deep neural networks to derive RL agents models that can adapt to other kind of existing tasks under both discrete and continuous domains and solve tasks that were previously considered intractable.
 
-\subsection{Reinforcement Learning model}
+Another reason that motivates our approach is the sequential nature of the recommendation process. In general, recommender systems usually work in a sequential manner: once the RS suggest items to the user, she can accept one of the recommendations. At the next stage a new list of recommended items is calculated based on the user feedback and then presented again to the user. This sequential nature allows us to reformulate the recommendation process as a sequential optimization process where optimal recommendations can depend either on the previous items purchased, and in the order in which those items were purchased. For example, Zimdars et al. \cite{zimdars2001using} suggested the use of a k-order Markov chain model (with k=3) to represent this behaviour by dividing a sequence of transactions $X_1, . . . ,X_T$ into cases $(X_{t-k}, . . . ,X_{t-1},X_t$) for $t = 1, . . . ,T$. and then, build a model to predict the item at the time step t given the other columns. 
 
-The model is defined as a Model-free approach which its main objective is to find the optimal policy which maximizes the total future reward
+As now deep reinforcement learning approaches can converge to good estimations under tasks considered intractable before, it motivates us to evaluate and improve these models under recommendation tasks, which this thesis project is focused.
 
-\textit{State space:} is the set of items recommended to the user
+\section{Baseline Agent Definition}
+\label{sec:baseline}
 
-\textit{Action space:} are the single items recommended at each timestep
+Therefore, the recommender problem can be considered as a sequence of Markov Decision Processes $\langle \mathcal{S}, \mathcal{A}, \mathcal{R}, \mathcal{P}, \gamma \rangle$, where the action space $\mathcal{A}$ is defined as the set of items to recommend, $\mathcal{S}$ represent the current state or item a user is currently consuming, thus both $\mathcal{S}$ and $\mathcal{A}$ represent items as feature vectors $\mathbf{a}$ and $\mathbf{s} \in \mathbb{R}^n$ respectively. $\mathcal{P}: \mathcal{S} \times \mathcal{A} \times \mathcal{S} \rightarrow \mathbb{R}$ is the transition probability distribution to move from state ${s_t}$ to $s_{t+1}$,  $\mathcal{R}: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$ is the reward value function $\mathcal{R}$ associated with an item accepted by the user, and $\gamma \in [0, 1]$ is the discount factor for future rewards. 
 
-\textit{Value function:} rating feedback received after giving a recommendation.
-
-
-%At each timestep, $\theta$ is updated with the latest latent factors learned.
-
-At current iteration h+1, we have gathered h observed recommendation history Dh = {(vi, ti, ri)}h
-i=1.
-Collect user rating rh and update p(? | Dh)
-
-\subsection{DRL}
-
-The main advantages of using this deep learning approach with an experience replay of size N are: i) each step of experience is potentially used in many weight updates, allowing greater data efficiency; ii) randomizing the samples breaks the correlation in a sequential event and therefore reduces the variance of the updates; iii) the experience replay mechanism allows the behavior distribution to be averaged over many of its previous states, smoothing out learning and avoiding instability or divergence in the parameters; and iv) the method showed that can be applied to a series of different reinforcement learning tasks with no adjustment of its architecture or learning algorithm.
-
-The Deep Deterministic Policy Gradient (DDPG) implementation uses an actor-critic approach based on the DPG algorithm which mainly maintains two functions: 1)the actor function $\mu(s|\theta_{\mu})$ that obtains the current policy by deterministically mapping states to specific actions; and 2)the critic function $Q(s,a)$ learned by applying the Bellman equation. DPG then updates the actor by applying the chain rule to the expected return from a start distribution $J = \mathbb{E}_{r_i, si \sim E, a_i \sim \pi}[R_1]$ and with respect to the actor parameters:
+The reinforcement learning agent is then defined as a model-free approach with the main objective to find the optimal policy $\pi$ that maximizes the expected total future reward $\mathbb{E}[R_1]$ over all episodes $R_t = \sum^{T}_{i=t} \gamma^{i-t}r(s_i, a_i)$. The expectation can be obtained using the Bellman equation (presented in section \ref{sec:model-free}): 
 \begin{equation}
-\label{}
-\begin{aligned}
-\nabla_{\theta^{\mu}}J & \approx \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_{\theta^{\mu}} Q(s, a | \theta_Q)|_{s=s_t, a=\mu(s_t|\theta_{\mu})} ] \\
-& = \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_a Q(s, a | \theta_Q)|_{s=s_t, a=\mu(s_t)}  \nabla_{\theta^{\mu}} \mu(s|\theta^{\mu})|_{s=s_t}]
-\end{aligned}
+Q^{\pi}(\mathbf{s}, \mathbf{a}) = r(\mathbf{s}, \mathbf{a}) + \gamma \sum_{\mathbf{s}'}P(\mathbf{s}'|\mathbf{s}, \mathbf{a}) Q^{\pi}(\mathbf{s}', \pi(\mathbf{s}')
 \end{equation}
 
-\subsection{Wolpertinger}
+In order to approximate $\pi$ and $Q$ under large-scale action spaces, standard actor-critic approaches need to define a policy by a parametrized actor function approximator $\pi_{\theta} = \arg\max_{\mathbf{a \in \mathcal{A}}} Q(\mathbf{s}, \mathbf{a}) : \mathcal{S} \rightarrow \mathcal{A}$ that would be able to generalize and that does not scales linearly in relation to the number of actions (turning the task into an intractable problem). Based on recent work presented by Lillicrap et al. \ref{lillicrap2015continuous} and Dulac-Arnold et al. \cite{Dulac-Arnold2015}, it is now possible to define generalizable reinforcement agents using a policy architecture with a sub-linear complexity relative to the action space that avoids the heavy cost of evaluating all actions. This actor-critic framework uses a multi-layer neural network as function approximators and is trained using Deep Deterministic Policy Gradient (DDPG).
 
-The action generation function $f_{\theta^{\pi}}(s) = \hat{\mathbf{a}}$ provides a proto-action in $\mathbb{R}^n$ for a given state s. $\hat{\mathbf{a}}$ is then mapped to the discrete action set $\mathcal{A}$ by applying the k-nearest-neighbor\footnote{The size of the generated action set k is task specific, and allows for an explicit trade-off between policy quality and speed} function from equation \ref{eq:knnDDPG}, which returns the k closest actions in $\mathcal{A}$ by computing the $L_2$ distance between them. Even if $g_k$ has the same complexity as the \textit{argmax} in the Q action-value function, each step of evaluation of the $L_2$ distance is faster than a full value-function evaluation as the lookup is performed in logarithmic time.
+The action generation function is based on the \textit{Wolpertinger} policy defined in \cite{Dulac-Arnold2015}. First, an initial function $f_{\theta^{\pi}}(s) = \hat{\mathbf{a}}$ provides a proto-action in $\mathbb{R}^n$ for a given state s. $\hat{\mathbf{a}}$ is then mapped to the discrete action set $\mathcal{A}$ by applying the k-nearest-neighbor\footnote{The size of the generated action set k is task specific, and allows for an explicit trade-off between policy quality and speed} function from equation \ref{eq:knnDDPG}, which returns the k closest actions in $\mathcal{A}$ by computing the $L_2$ distance between them.
 \begin{equation}
 \label{eq:knnDDPG}
 g_k(\hat{\mathbf{a}}) = \arg\min^k_{a \in \mathcal{A}} | \mathbf{a} - \mathbf{\hat{\mathbf{a}}} |_2
 \end{equation}
 
-Following the selection of the of k closest actions to $\hat{\mathbf{a}}$, the choice of the actual action to be applied to the environment is set according to the highest-scoring action obtained according $Q_{\theta^Q}$ defined in equation \ref{eq:qDDPG}. Consequently, the full Wolpertinger policy $\pi_{\theta}$ with parameter $\theta$, representing both the parameters of the action generation element $\theta_{\pi}$ and of the critic $\theta_Q$, makes the algorithm significantly more robust to imperfections in the choice of action representation.
-
-When executing the DDPG algorithm, the critic is trained from samples stored in the replay buffer (which are generated by the full policy), while the policy gradient $\nabla_a Q_{\theta^Q}(s,a)$ is taken at the true output $\hat{\mathbf{a}} = f_{\theta^{\pi}}(s)$. Finally, the target action in the Q-update is generated by the full policy.
-
+Even if $g_k$ has the same complexity as the \textit{argmax} in the Q action-value function, each step of evaluation of the $L_2$ distance is faster than a full value-function evaluation as the lookup is performed in logarithmic time. Finally, the choice of the actual action to be applied to the environment is set according to the highest-scoring action obtained according $Q_{\theta^Q}$ defined in equation \ref{eq:qDDPG}. As a result, the full Wolpertinger policy makes the algorithm significantly more robust to imperfections in the choice of action representation.
 \begin{equation}
 \label{eq:qDDPG}
 \pi_{\theta}(s) = \arg\max_{a \in g_k \circ f_{\theta^{\pi}}(s) } Q_{\theta^Q}(s, a)
 \end{equation}
 
+On the other hand, the DDPG implementation maintains two functions: (1) the actor function $\mu(s|\theta_{\mu})$ that obtains the current policy by deterministically mapping states to specific actions; and (2) the critic function $Q(s,a)$ learned by applying the Bellman equation. It then updates the actor by applying the chain rule to the expected return from a start distribution $J = \mathbb{E}_{r_i, si \sim E, a_i \sim \pi}[R_1]$ and with respect to the actor parameters:
+\begin{equation}
+\label{}
+\begin{aligned}
+\nabla_{\theta^{\mu}}J & \approx \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_{\theta^{\mu}} Q(s, a | \theta^Q)|_{s=s_t, a=\mu(s_t|\theta^{\mu})} ] \\
+& = \mathbb{E}_{s_t \sim \rho^{\beta}} [\nabla_a Q(s, a | \theta^Q)|_{s=s_t, a=\mu(s_t)}  \nabla_{\theta^{\mu}} \mu(s|\theta^{\mu})|_{s=s_t}]
+\end{aligned}
+\end{equation}
 
+In order to maintain stability in the learning algorithm, a separate target networks $\mu'(s|\theta_{\mu'})$ and $Q'(s, a|\theta_{Q'})$ for the actor and critic are used for calculating the target values, where their weight parameters are updated by using an smooth function update $\theta' \leftarrow \tau\theta + (1 - \tau)\theta'$ with $\tau \ll 1$ to main an exponential moving average of the trained parameters $\theta^{\mu}$ and $\theta^{Q}$.
+ 
+Among the main advantages of using this deep learning approach, DDPG introduces an experience replay buffer of size N that helps to reduce the correlation among the sequence of samples used by the RL agent. The mechanism allows the behaviour distribution to be averaged over many of its previous states, smoothing out learning and avoiding instability or divergence in the parameters.
 
-*For insights and arguments, follow \textbf{Recommender systems survey}
+When executing the DDPG algorithm, the critic is trained from samples generated and stored in the replay buffer by the full policy, while the policy gradient $\nabla_a Q_{\theta^Q}(s,a)$ is taken at the true output $\hat{\mathbf{a}} = f_{\theta^{\pi}}(s)$. The target action in the Q-update is generated by the full policy.
 
-%\subsection{OpenAI Gym: a Reinforcement Learning Toolkit}
-%
-%OpenAI Gym\footnote{\url{https://gym.openai.com/}} is a toolkit for developing and comparing reinforcement learning algorithms[***](OpenAI Gym). It includes a growing collection of benchmark problems that expose a common interface that abstracts the RL framework described above. It focuses on the episodic setting of reinforcement learning, where the agent?s experience is broken down into a series of episodes. During each episode, the agent?s initial state is randomly sampled from a distribution, and the interaction proceeds until the environment reaches a terminal state. The final goal in OpenAI Gym is to maximize the expectation of total reward per episode, and to achieve a high level of performance in as few episodes as possible.
-%
-%The design of the framework is based on the authors? experience developing and comparing reinforcement learning algorithms. It manages two core concepts: (1) a free-to-code \textit{agent} that maximizes the convenience for users allowing them to implement different styles of agent interface; and (2) a common \textit{environment} interface that ease the implement and testing of different reinforcement learning problems under the same framework. Moreover, environments are strictly versioned in order to maintain the consistency in the results obtained by previously implemented agents; and are instrumented with a configurable monitor interface, which keeps track of every time step during simulation.
-%
-%In general, OpenAI Gym contains a collection of Partially Observed MDP Environments (POMDPs). After performing an action step in an environment, its interface returns the observation of current state, reward achieved by the action performed, a done flag indicating if an episode ends (and therefore, needs to be reset), and an information object containing useful information for debugging and learning. Furthermore, environments come with first-class space objects that describe the valid actions and observations. Such spaces can be defined as a \textit{discrete} object allowing a fixed range of non-negative numbers, or as an n-dimensional \textit{box space} for representing continuous spaces.
-%
-%On the other hand, the measure of performance in a RL algorithm under an environment can be measured along two axes: \textit{final performance} or average reward per episode, after learning is complete; and, \textit{sample complexity} or the amount of time it takes to learn. The latter can be measured in multiple ways, for example, by counting the number of episodes until reaching a threshold level of average performance. Naturally, this threshold is chosen per-environment in an ad-hoc way. In addition, the OpenAI Gym website allows users to compare the performance of their algorithms in a way to collaborate with each other rather than a competition.
+\section{FM Agent Model}
 
+Our implementation tries to replace the k-nearest neighbour computation in the Wolpertinger policy for a Bayesian Personalized Ranking (BPR) model using Factorization Machines to find the top-N items from a given state to then select the item that yields to the highest Q value in the long term. The deep reinforcement agent will finally learn using the same DDPG architecture as the baseline model.
 
+The Bayesian formulation presented in Rendle et al. in \cite{rendle2009bpr} find the correct personalized  ranking  for  all  items $i \in I$ by maximizing the posterior probability $p(\theta | >_u) \approx p(>_u | \theta) p(\theta)$ where $\theta$ represents the parameter vector of an arbitrary model class (e.g. matrix factorization) and $>_u$ is the desired but latent preference structure for user $u$. In order to guarantee a personalized total order, totality, antisymmetry and transitivity properties are fulfilled by defining the individual probability that a user really prefers item $i$ to $j$ as $p(i >_u j | \theta ) := \sigma(\hat{x}_{uij}(\theta))$ where $\sigma$ is the sigmoid function and $\hat{x}$ is an is  an  arbitrary  real-valued  function of the model parameter vector which captures the special relationship between user $u$, item $i$ and item $j$, such as Matrix Factorization of adaptive kNN.
+
+Rendel S. showed in \cite{rendle2012factorization} that factorization models can be expressed using the Factorization Machines, including the BPR model for top-N recommendation, where vectors x are ordered by the score of $\hat{y}(x)$ and optimization is done over pairs of instance vectors $(x_i, x_j) \in \mathcal{D}$.
+
+\subsection{Proposed Approach}
+
+A new policy achitecture called FM-policy is proposed. It tries to improve how the agent learn to recommend under scenarios with high sparsity at the cost of linear complexity, compared to the sublinear complexity offered by the Wolpertinger policy. The FM-policy algorithm is described in Algorithm \ref{alg:fmpolicy}.
+
+\begin{center}
+ \begin{algorithm}[!htbp]
+    \SetAlgoLined\DontPrintSemicolon
+    \caption{FM policy}
+    \label{alg:fmpolicy}
+    
+    State $\mathbf{s}$ previously received from environment.\;
+    $\hat{\mathbf{a}} = f_{\theta^{\pi}}(\mathbf{s})$ {Receive proto-action from actor}.\;
+    $\mathcal{A}_k = g_k(\mathbf{s})$ {Retrieve Top-k recommendation given state s}\;
+    $\mathbf{a}_{TOP} = \arg \max_{\mathbf{a}_j \in \mathcal{A}_k} Q_{\theta^{Q}}(\mathbf{s}, \mathbf{a}_j)$\;
+    \If{$\hat{\mathbf{a}} == \mathbf{a}_{TOP}$}{
+	$updateBPRModel(\mathbf{s}, \mathbf{a})$\;
+    }
+    Apply $\mathbf{a}_{TOP}$ to environment; receive $r$, $\mathbf{s}'$\;
+  \end{algorithm}
+%\end{minipage}
+\end{center}
+
+First, the actor function in the deep reinfocement learning architecture provides a proto-action in $\mathbb{R} \in {A}$ for a given state, while a pre-trained BPR-FM model obtains the the Top-k recommendations given the current state (or previous recommended item). Then, If the action predicted by the agent is the same as the item in list of k items that gives the highest Q value, the FM model is updated, and finally, the item that yields the highest reward is applied to the environment.
+
+Similarly to the baseline model, when executing the DDPG algorithm, the critic is trained from samples generated and stored in the replay buffer by the FM policy, while the policy gradient is taken at the true output in the actor function $f_{\theta^{\pi}}(s)$. As a reference, the pseudocode of the algorithm can be found in Appendix \ref{app:ddpgfm}.

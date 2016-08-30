@@ -40,6 +40,15 @@
 \RequirePackage[l2tabu, orthodox]{nag}
 \RequirePackage{amssymb}
 
+% Required for writing algorithms
+\RequirePackage[ruled]{algorithm2e}
+%\renewcommand{\baselinestretch}{1.5}
+\SetKwInput{KwInput}{Input}
+%\newlength\algowd
+%\def\savewd#1{\setbox0=\hbox{#1\hspace{.7in}}\algowd=\wd0\relax#1}
+%\newcommand\algolines[2]{\savewd{#1}%
+%  \tcp*{\parbox[t]{\dimexpr\algowidth-\algowd}{#2}}}
+
 % ------ Main document class specification ------
 % The draft option here prevents images being inserted,
 %  and adds chunky black bars to boxes that are exceeding 
@@ -75,10 +84,12 @@
 % Title Settings
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
-\title{A Thesis Title}
+%\title{A Deep Reinforcement Learning Approach for Recommender Systems}
+\title{Learning to Recommend using a Deep Reinforcement Agent}
 \author{Hernan Santiago Gonzalez Toral}
 \department{Department of Computer Science}
-\emailaddr{hernangt12re3@gmail.com}
+%\emailaddr{hernangt12re3@gmail.com}
+\emailaddr{}
 \supervisor{Dr. Jun Wang}
 \supemail{jun.wang.l@cs.ucl.ac.uk}
 

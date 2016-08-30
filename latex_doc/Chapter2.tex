@@ -10,7 +10,7 @@ The most general setting in which recommender systems are studied is presented i
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.9]{images/uimatrix}
-\caption{Typical user ratings matrix, where each cell $r_{u,i}$ corresponds to the rating of user u for item i.}
+\caption[Typical user rating matrix]{Typical user ratings matrix, where each cell $r_{u,i}$ corresponds to the rating of user u for item i.}
 \label{fig:iomatrix}
 \end{figure}
 
@@ -79,16 +79,15 @@ Latest studies in CF showed that combining conceptual (explicit) and usage (impl
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.8]{images/taxonomyrs}
-\caption{Recommender System taxonomy. Source: Recommender systems survey\cite{bobadilla2013recommender}}
+\caption[Recommender Systems taxonomy]{Recommender System taxonomy. Source: Recommender systems survey\cite{bobadilla2013recommender}}
 \label{fig:taxonomy}
 \end{figure}
 
-Moreover, Bobadilla et al. argue that the most widely used algorithm for CF is the kNN. In general, kNN generates recommendations by executing the following tasks: (1) determine k users neighbors; (2) implement an aggregation approach with the ratings for the neighborhood in items not rated by a; and (3) select the top N recommendations from predictions obtained in step 2.
+Moreover, Bobadilla et al. argue that one the most widely used algorithm for CF is the k-nearest neighbors (kNN) model. In general, kNN generates recommendations by executing the following tasks: (1) determine k users neighbors; (2) implement an aggregation approach with the ratings for the neighborhood in items not rated by a; and (3) select the top N recommendations from predictions obtained in step 2.
 
-On the other hand, current research, like \cite{wang2015collaborative}, made a generalization of recent advances in Deep Learning \cite{bengio2013representation} of the Identically and Independently Distributed (i.i.d.) input and applied it to the non-i.i.d. (e.g. CF-based) input by presenting hierarchical Bayesian models that jointly performs deep representation learning for the content information and CF for the ratings matrix. Additionally, Wu Y. et al. in \cite{wu2016collaborative} proposed a Collaborative Deep Auto Encoders (CDAE) model which formulates the top-N recommendation problem using Denoising Auto-Encoders to learn the latent factors from corrupted inputs. Experiments carried out over different domains have shown that the two deep learning approaches can significantly outperform the state of the art. Therefore, recent research has started to focused on defining deep representational approaches that can lead to better recommendations.
+On the other hand, a more robust model that combines the advantages of Support Vector Machines with factorization models was introduced by Rendle S. in \cite{rendle2010factorization}. The Factorization Machine (FM) model is able to compute all interactions between variables using factorized parameters even in scenarios with huge sparsity like recommender systems. Later, Rendel S. presented in \cite{rendle2012factorization} the \textit{LibFM} software package that implements three learning methods have been proposed for FMs: Stochastic Gradient Descent (SGD)\cite{rendle2010factorization}, Alternating Least-Squares (ALS)\cite{rendle2011fast} and the Markov Chain Monte Carlo (MCMC)\cite{freudenthaler2011bayesian}.
 
-\subsection{A sequential nature of the recommender process}
-Recommender systems usually work in a sequential manner: the RS suggest items to the user who can then accept one of the recommendations. At the next stage a new list of recommended items is calculated based on user feedback and then presented to the user. This sequential nature allows the reformulation of the recommendation process as a sequential optimization process where optimal recommendations do not depend only on the previous items purchased, but also in the order in which those items were purchased. Zimdars et al. \cite{zimdars2001using} suggested the use of a k-order Markov chain model (with k=3) to represent this behavior by dividing a sequence of transactions $X_1, . . . ,X_T$ into cases $(X_{t-k}, . . . ,X_{t-1},X_t$) for $t = 1, . . . ,T$. and then, build a model to predict the item at the time step t given the other columns. Thus, Recommender Systems can be modeled using reinforcement learning approaches.
+Most recent research like \cite{wang2015collaborative}, made a generalization of recent advances in Deep Learning \cite{bengio2013representation} of the Identically and Independently Distributed (i.i.d.) input and applied it to the non-i.i.d. (e.g. CF-based) input by presenting hierarchical Bayesian models that jointly performs deep representation learning for the content information and CF for the ratings matrix. Additionally, Wu Y. et al. in \cite{wu2016collaborative} proposed a Collaborative Deep Auto Encoders (CDAE) model which formulates the top-N recommendation problem using Denoising Auto-Encoders to learn the latent factors from corrupted inputs. Experiments carried out over different domains have shown that the two deep learning approaches can significantly outperform the state of the art. Therefore, recent research has started to focused on defining deep representational approaches that can lead to better recommendations.
 
 \section{Reinforcement Learning}
 Reinforcement learning (RL) \cite{kaelbling1996reinforcement} is a family of machine learning algorithms that optimize sequential decision making processes based on scalar evaluations or rewards. Similarly to an n-armed bandit model\cite{katehakis1987multi}, RL considers the problem as a goal-directed agent interacting with an uncertain environment, where the main objective is to perform actions that maximize the expected sum of future reward for each state in the long term. The most important feature distinguishing RL from other types of learning is that it uses training information that evaluates the actions taken rather than instructs by giving correct actions (like supervised learning algorithms). In other words, an agent must be able to learn from its own experience, like a trial-and-error search.
@@ -98,7 +97,7 @@ RL uses a formal framework which defines the continuous interaction in terms of 
  \begin{figure}[h]
 \centering
 \includegraphics[scale=2]{images/rlenvironment}
-\caption{The Agent-Environment interface in a Reinforcement Learning problem. Source: Reinforcement Learning: a Survey\cite{sutton1998reinforcement} }
+\caption[Agent-Environment interface in a Reinforcement Learning problem]{The Agent-Environment interface in a Reinforcement Learning problem. Source: Reinforcement Learning: a Survey\cite{sutton1998reinforcement} }
 \label{fig:rlenvironment}
 \end{figure}
 
@@ -131,6 +130,7 @@ A particular finite MDP is defined by its state and action sets, a reward functi
 Therefore, the decision-maker's goal is to find an optimal policy $\pi$, such that at each stage of the decision process, the agent needs only to obtain the current state $s$ and execute the action $a=\pi(s)$. Various exact and approximate algorithms have been proposed for estimating the optimal policy $\pi*$, such as policy iteration, value iteration, Monte-Carlo learning, temporal difference, Q-learning, SARSA, etc\cite{kaelbling1996reinforcement}\cite{sutton1998reinforcement}.
 
 \subsection{A model-free Reinforcement Learning Setup}
+\label{sec:model-free}
 
 A reinforcement learning setup consists of an agent interacting with an environment $E$ at discrete time steps. At each time step $t$, the agent receives an observation $s_t$, takes an action $a_t$ and receives a reward $r_t$. Additionally, the environment $E$ may be stochastic so it can be modeled as an MDP with a state space $\mathcal{S}$, action space $\mathcal{A}$, an initial state distribution $\rho(s_1)$, transition dynamics $\rho(s_{t+1}|s_t, a_t)$, and reward function $r(s_t, a_t)$. On the other hand, the agent's behavior is defined by a policy $\pi$, which maps states to a probability distribution over the actions $\pi : \mathcal{S} \rightarrow P(\mathcal{A})$. Finally, the return from a state is defined as the sum of the discounted future reward $R_t = \sum^T_{i=t} \gamma^{(i?t)}r(s_i, a_i)$. As the return depends on the actions chosen and therefore on $\pi$, it may be stochastic. 
 
@@ -203,7 +203,7 @@ Authors experimented with small values of \textit{k} ($k \in [1-5]$) in order to
 %tr_{MC}(s, s')=\frac{1}{2}tr^{base}_{MC}(s, s') + \frac{1}{2}\frac{simcount(s, s')}{\sum_{s''}simcount(s, s'')}
 %\end{equation}
 %
-%Due to larger values of k lead to states that are more informative whereas smaller values of k lead to states with more statistical meaning, they added as a third enhancement a finite mixture modeling (e.g. combine a trigram, a bigram and a unigram into a single model) in a way to balance these conflicting properties by mixing k models, where the \textit{i-th} model looks at the last i transactions. In addition, they applied mixture weights during experiments as $\pi_1 = · · · = \pi_k = 1/k$ so the generation of the models for smaller values entails little computational overhead.
+%Due to larger values of k lead to states that are more informative whereas smaller values of k lead to states with more statistical meaning, they added as a third enhancement a finite mixture modeling (e.g. combine a trigram, a bigram and a unigram into a single model) in a way to balance these conflicting properties by mixing k models, where the \textit{i-th} model looks at the last i transactions. In addition, they applied mixture weights during experiments as $\pi_1 = Â· Â· Â· = \pi_k = 1/k$ so the generation of the models for smaller values entails little computational overhead.
 
 %An evaluation on the accuracy of the predictive model was performed using real user transactions and browsing paths (from web logs) from the commercial store web site. Besides, they compared different variations of their enhancements on the MC approach with other models like i)both sequential and non-sequential form of the \textit{Microsoft Commerce Server 2000}(Heckerman et al. (2000))[***] (local distributions are probabilistic decision trees); and ii)unordered versions of MC models. Results outlined that the MC models using skipping, clustering, and mixture modeling yielded better results than any other other variation of model \textit{i}. Sequence-sensitive models outperformed the accuracy of non-sequential models, while MC models were superior to the predictor models. and the skipping enhancement was only beneficial for the transactions data set
 

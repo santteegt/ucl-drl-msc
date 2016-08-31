@@ -87,6 +87,10 @@ class Experiment:
         returns.append((self.t_train, avr))
         np.save(FLAGS.outdir+"/returns.npy",returns)
 
+        s = self.agent.checkpoint_session()
+        with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+            f.write('Checkpoint saved at {} \n'.format(s))
+
         # evaluate required number of episodes for gym and end training when above threshold
         if self.env.spec.reward_threshold is not None and avr > self.env.spec.reward_threshold:
           # TODO: it is supposed that when testing the model does not have to use the full wolpertinger policy?
@@ -96,6 +100,9 @@ class Experiment:
           with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
             f.write('TRIALS => Average return{}\t Reward Threshold {}\n'.format(avr, self.env.spec.reward_threshold))
           if avr > self.env.spec.reward_threshold:
+            s = self.agent.checkpoint_session()
+            with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
+                f.write('Final Checkpoint saved at {} \n'.format(s))
             break
 
       # train

@@ -54,7 +54,7 @@ class Agent:
     # start tf session
     self.sess = tf.Session(config=tf.ConfigProto(
       inter_op_parallelism_threads=threads,
-      log_device_placement=True,
+      log_device_placement=False,
       allow_soft_placement=True))
 
     # create tf computational graph
@@ -207,6 +207,7 @@ class Agent:
     self.saver = tf.train.Saver(max_to_keep=1)
     ckpt = tf.train.latest_checkpoint(FLAGS.outdir+"/tf")
     if ckpt:
+      print "==> RESTORING VARIABLES FROM CHECKPOINT: {}".format(ckpt)
       self.saver.restore(self.sess,ckpt)
     else:
       self.sess.run(tf.initialize_all_variables())
@@ -265,6 +266,9 @@ class Agent:
       # if (self.t+45000) % 50000 == 0: # TODO: correct
       #   s = self.saver.save(self.sess,FLAGS.outdir+"f/tf/c",self.t)
       #   print("DDPG Checkpoint: " + s)
+
+  def checkpoint_session(self):
+    return self.saver.save(self.sess, FLAGS.outdir + "/tf/c", self.t)
 
   def train(self):
     if not self.started_train:

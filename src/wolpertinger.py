@@ -124,11 +124,14 @@ class Wolpertinger(object):
 def load_action_set(filename, i, action_shape):
     actions = np.zeros((i, action_shape))
     row = 0
-    with open(filename, mode='r') as f:
-        for line in f:
-            actions[row, ...] = line.split(',')[1:]
-            row += 1
-    return actions
+    if filename.endswith(".csv"):
+        with open(filename, mode='r') as f:
+            for line in f:
+                actions[row, ...] = line.split(',')[1:]
+                row += 1
+        return actions
+    else:
+        return np.load(filename, "r", allow_pickle=False)
 
 if __name__ == '__main__':
     # env = filter_env.makeFilteredEnv(gym.make("InvertedDoublePendulum-v1"))

@@ -26,7 +26,7 @@ flags.DEFINE_bool('egreedy_expl',False,'Perform epsilon greedy exploration')
 flags.DEFINE_float('epsilon', 0.2, 'epsilon probability for an epsilon greedy exploration')
 flags.DEFINE_integer('wp_total_actions', 1000000, 'total number of actions to discretize under the Wolpertinger policy')
 flags.DEFINE_string('wp_action_set_file', 'data/embeddings-movielens1m.csv', 'Embeddings file for Knn index generation')
-flags.DEFINE_bool('skip_action_space_norm', False, 'Skip action space normalization')
+flags.DEFINE_bool('skip_space_norm', False, 'Skip action space normalization')
 # ...
 # TODO: make command line options
 
@@ -42,7 +42,7 @@ class Experiment:
     self.t_test = 0
 
     # create filtered environment
-    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env), skip_action_space_norm=FLAGS.skip_action_space_norm,
+    self.env = filter_env.makeFilteredEnv(gym.make(FLAGS.env), skip_space_norm=FLAGS.skip_space_norm,
                                           wolpertinger=FLAGS.wolpertinger)
     # self.env = gym.make(FLAGS.env)
     

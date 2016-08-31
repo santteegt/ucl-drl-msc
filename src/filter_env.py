@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 
-def makeFilteredEnv(env, skip_action_space_norm=False, wolpertinger=False):
+def makeFilteredEnv(env, skip_space_norm=False, wolpertinger=False):
   """ crate a new environment class with actions and states normalized to [-1,1] """
   acsp = env.action_space
   obsp = env.observation_space
@@ -15,6 +15,8 @@ def makeFilteredEnv(env, skip_action_space_norm=False, wolpertinger=False):
   class FilteredEnv(env_type):
     def __init__(self):
       self.__dict__.update(env.__dict__) # transfer properties
+
+      self.skip_space_norm = skip_space_norm
 
       # Observation space
       if np.any(obsp.high < 1e10):
@@ -45,10 +47,11 @@ def makeFilteredEnv(env, skip_action_space_norm=False, wolpertinger=False):
         self.r_sc = 200.
         self.r_c = 0.
 
-      # Check and assign transformed spaces
-      self.observation_space = gym.spaces.Box(self.filter_observation(obsp.low),
-                                              self.filter_observation(obsp.high))
-      if not skip_action_space_norm:
+      if not skip_space_norm:
+        # Check and assign transformed spaces
+        self.observation_space = gym.spaces.Box(self.filter_observation(obsp.low),
+                                                self.filter_observation(obsp.high))
+
         self.action_space = gym.spaces.Box(-np.ones_like(acsp.high),np.ones_like(acsp.high)) if not wolpertinger else \
           gym.spaces.SimBox(-np.ones_like(acsp.high), np.ones_like(acsp.high), env=env, top_n=env.action_space.top_n)
         def assertEqual(a,b): assert np.all(a == b), "{} != {}".format(a,b)
@@ -67,11 +70,13 @@ def makeFilteredEnv(env, skip_action_space_norm=False, wolpertinger=False):
 
     def step(self,action):
 
-      ac_f = np.clip(self.filter_action(action),self.action_space.low,self.action_space.high)
+      _action = action if self.skip_space_norm else self.filter_action(action)
+
+      ac_f = np.clip(_action,self.action_space.low,self.action_space.high)
 
       obs, reward, term, info = env_type.step(self,ac_f) # super function
 
-      obs_f = self.filter_observation(obs)
+      obs_f = obs if self.skip_space_norm else self.filter_observation(obs)
 
       return obs_f, reward, term, info
 

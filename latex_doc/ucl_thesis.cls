@@ -172,9 +172,11 @@
 %
 %    \begin{macrocode}
 
-\setlength \hoffset{-25.4mm}
+%\setlength \hoffset{-25.4mm}
+\setlength \hoffset{-33.4mm}
 \setlength \voffset{-25.4mm}
-\setlength \textwidth{140mm}
+%\setlength \textwidth{140mm}
+\setlength \textwidth{150mm}
 \setlength \textheight{232mm} % I think you need some extra vertical space for headers and page numbers
 \setlength \topmargin{20mm}
 \setlength \oddsidemargin {39mm} % Allow a mm for the bleed.
@@ -535,7 +537,7 @@
     \fi
     \thispagestyle{empty}%
     \global \@topnum \z@%
-    \@afterindentfalse%
+%    \@afterindentfalse%
     \secdef \@chapter \@schapter%
 }
 \def \@makechapterhead#1{%

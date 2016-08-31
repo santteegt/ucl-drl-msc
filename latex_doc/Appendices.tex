@@ -54,10 +54,11 @@
     	$action \leftarrow waitForAgentAction()$\;
 	\tcc{probability of choosing action given current state}
 	$\rho_{action} = \leftarrow computeTransition(\mathcal{P}, state, action)$\;
-	$rating \leftarrow getUserRating(u_{random}, action)$\;
+	$\mathit{rating} \leftarrow getUserRating(u_{random}, action)$\;
 	\tcc{get the mean and std dev of the transition probability distr. for a given state}
 	$\mu, \sigma \leftarrow transProbDistribution(\mathcal{P}, state)$\;
-	$is\_chosen \leftarrow \rho_{action} < random.normal(\mu, \sigma) \&\& rating > 0$\;
+	$\mathit{threshold} \leftarrow \mu$\;
+	$is\_chosen \leftarrow \rho_{action} > \mathit{threshold}$ \textbf{and} $\mathit{rating} > 0$\;
 	\eIf{$is\_chosen$}{
 		$\rho_{end} \leftarrow 0.1$\;
 		$reward \leftarrow rating$\;

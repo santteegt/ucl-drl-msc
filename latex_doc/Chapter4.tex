@@ -5,7 +5,7 @@ In the previous chapter, deep reinforcement learning agents were described to so
 
 \section{Reinforcement Learning Environment}
 
-For the purpose to demonstrate how the deep reinforcement learning agent perform on the recommendation task, a simulated environment is modelled under the OpenAI Gym\footnote{\url{https://gym.openai.com/}} reinforcement learning toolkit. It that allow us to define Partially Observed MDP environments (POMDPs)  under an episodic setting where the agent's experience is broken down into a series of episodes\cite{brockman2016openai}. In general, OpenAI Gym manages two core concepts: (1) a free-to-code \textit{agent} that maximizes the convenience for users allowing them to implementation different styles of agent interface; and (2) a common \textit{environment} and action/observation interfaces that ease the implementation and testing of different reinforcement learning problems under the same framework. The final goal in OpenAI Gym is to maximize the expectation of total reward per episode, and to achieve a high level of performance in as few episodes as possible.
+For the purpose to demonstrate how the deep reinforcement learning agent perform on the recommendation task, a simulated environment is modelled under the OpenAI Gym\footnote{\url{https://gym.openai.com/}} reinforcement learning toolkit. It that allow us to define Partially Observed MDP environments (POMDPs)  under an episodic setting where the agent's experience is broken down into a series of episodes \cite{brockman2016openai}. In general, OpenAI Gym manages two core concepts: (1) a free-to-code \textit{agent} that maximizes the convenience for users allowing them to implementation different styles of agent interface; and (2) a common \textit{environment} and action/observation interfaces that ease the implementation and testing of different reinforcement learning problems under the same framework. The final goal in OpenAI Gym is to maximize the expectation of total reward per episode, and to achieve a high level of performance in as few episodes as possible.
 
 During each episode, the agent's initial state is randomly sampled from a distribution, and the interaction proceeds until the environment reaches a terminal state. After performing an action step, the environment interface returns the observation of current state, the reward achieved by the action performed, a done flag indicating if an episode ends and an information object containing useful information for debugging and learning. Finally, the framework also allow us to measure the performance of a RL algorithm under an environment along two axes: \textit{final performance} or average reward per episode, after learning is complete; and, \textit{sample complexity} or the amount of time it takes to learn. 
 
@@ -21,26 +21,28 @@ The implemented algorithm is presented in Appendix \ref{app:simulated_env} and d
 
 \section{Data Set}
 
-The 1M Movielens dataset \cite{harper2016movielens} from the GroupLens Reseach Lab\footnote{\url{http://grouplens.org/datasets/movielens/}} is used to train and test the implemented deep reinforcement agents. Table \ref{table:dataset} summarizes the statistical nature of the dataset. The ratings file was pre-processed in order to generate the user rating matrix, the transition probability matrix and to train and test the baseline CF-model using 5-fold cross validation to predict the missing ratings under the simulated environment.
+The 100-k and 1M Movielens datasets \cite{harper2016movielens} from the GroupLens Reseach Lab\footnote{\url{http://grouplens.org/datasets/movielens/}} are used to train and test the implemented deep reinforcement agents. Table \ref{table:dataset} summarizes the statistical properties of each dataset. The ratings files were pre-processed in order to generate the user rating matrix, the transition probability matrix. Additionally, train and test sets were generated to apply a five-fold cross validation to the baseline CF ratings predictor inthe simulated environment.
 
 \begin{table}[!htbp]
 %\begin{center}
 \centering
-\begin{tabular}{ |l|r| }
+\begin{tabular}{ |l|r|r| }
   \hline
-  \multicolumn{2}{|c|}{1M Movielens dataset} \\
+%  \multicolumn{2}{|c|}{100K Movielens} & 1M Movielens \\
+  & 100K Movielens & 1M Movielens \\
   \hline
-  Total ratings & 1,000,029 \\
-  Users & 6,040 \\
-  Movies & 3,883 \\
-  Sparsity Level & 57.4\% \\
-  Mean ratings/user & 165 \\
-  Min. ratings/user & 20 \\
-  Max. ratings/user & 2314 \\
+  Total ratings & 100,000 & 1,000,029 \\
+  Users & 943 & 6,040 \\
+  Movies & 1682 & 3,883 \\
+  Density & 0.63 & 0.42 \\
+%  Sparsity Level & 57.4\% \\
+  Mean ratings/user & 106 & 165 \\
+  Min. ratings/user & 20 & 20 \\
+  Max. ratings/user & 737 & 2314 \\
   \hline
 \end{tabular}
 %\end{center}
-\caption{Properties of the 1M Movielens dataset}
+\caption{Properties of the 100-k and 1M Movielens datasets}
 \label{table:dataset}
 \end{table}
 
@@ -48,25 +50,27 @@ The 1M Movielens dataset \cite{harper2016movielens} from the GroupLens Reseach L
 
 \section{Baselines and Experimental Settings}
 
-To evaluate the strength and accuracy of deep reinforcement learning model, we compare the new model against a pure CF model and two variants of the baseline model described in section \ref{sec:baseline}, The description of each model is listed as follows:
+To evaluate the strength and accuracy of the deep reinforcement learning model, we compare the new model against a pure CF model and two variants of the baseline model described in section \ref{sec:baseline}, The description of each model is listed as follows:
 
 \begin{itemize}
 \item \textbf{FM-MCMC}: \textit{Factorization Machine with Monte Carlo Markov Chain inference}  uses FM based on the Bayeasian inference with a Gibbs sampling technique that generates the distribution of $\hat{y}$ by sampling the conditional posterior distribution for each model parameter. This model was chosen as the baseline model for comparison as it it outperforms other learning approaches like SGD and ALS, and also because it integrates the regularization parameter into the model, which avoids a time-consuming search for the optimal hyperparameters. The only hyperparameter that remains for MCMC is the initialization of the standard deviation$\sigma$ for the Gibbs sampler.
-\item \textbf{DRL-kNN-CB}: \textit{DRL with Content-based similarity for continuous action spaces} model uses the DDPG algorithm with a bag-of-words feature vectors to represent actions and states. The k-nearest neighbors index is then created using a KDtree algorithm[***] to find the closest set of existing items from the action estimated by the actor function. Finally, the Wolpertinger policy will apply the action in $\mathcal{A}$ that yields to the maximum return.
+\item \textbf{DRL-kNN-CB}: \textit{DRL with Content-based similarity for continuous action spaces} model uses the DDPG algorithm with a bag-of-words feature vectors to represent actions and states. The k-nearest neighbors index is then created using a KDtree algorithm \cite{friedman1977algorithm} to find the closest set of existing items from the action estimated by the actor function. Finally, the Wolpertinger policy will apply the action in $\mathcal{A}$ that yields to the maximum return.
 \item \textbf{DRL-kNN-CF}: \textit{DRL with Item-based similarity} model uses a similar configuration as the model described above but it implements an item-to item version of the k-NN algorithm for CF using the item vectors from the user rating matrix to find the closest set of items from an action given by the actor function.
 \item \textbf{DRL-FM}: \textit{DRL with Factorization Machines policy} model replaces the k-NN algorithm from the models previously described with the FM-BRP model to return the Top-k items that can be recommended from a given state. Then, the FM-policy will apply the action from the top-N recommendations that yields to the highest Q value in the long term.
 \end{itemize}
 
-For the content-based model, feature vectors for each item were created using a combination of word embeddings extracted using \textit{word2vec}\footnote{\url{https://radimrehurek.com/gensim/index.html}}, and genre categorization as a binary vector.
-
 For the FM models, we use the \textit{fastFM}\footnote{\url{https://github.com/ibayer/fastFM}} library introduced by Bayer I. in \cite{bayer2015fastfm} that offers an efficient python implementationn of the FM learning algorithms including MCMC and BRP-OPT with SGDthe ratings file was transformed to the $SVM^{light}$ representation introduced in \cite{joachims1999making}. Figure \ref{fig:featurevector} shows an example of the feature vector representation. First, there are $|\mathcal{U}|$ binary indicators variables (blue) that represent the active user of a transaction. The next $|\mathcal{I}|$ binary indicator variables (red) hold the active item. Each feature vector also contains normalized indicator variables (yellow) for all other items the user has ever rated. Finally, the vector contains a variable (green) holding the time when the rating was registered, and another variable containing information of the last movie the user has rated before.
+
+The network configuration for the DDPG algorithm consists of a fully connected network with two hidden layers with 400 and 300 neurons each. The input and output of the network are the current state (item previously recommended) and the item that the agents predicts to be the next recommendation, respectively. Therefore, their size depends on the vector representation of items in each model.
+
+For the DRL-kNN-CB model, feature vectors for each item were created using a combination of word embeddings extracted using \textit{word2vec}\footnote{\url{https://radimrehurek.com/gensim/index.html}}, and genre categorization as a binary vector. The final feature vector size is of 119 elements. While, for the DRL-kNN-CF and DRL-FM models, items representation were extracted from the user rating matrix, so their size are 943 and 6040 elements for the 100-k and 1M datasets respectively.
 
 In the experiments, (hyperparameter configuration for each model)[***Missing]
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.9]{images/featurevectors}
-\caption[Feature vector representation in the $SVM^{light}$ format]{Feature vector representation for ratings under the FM models (Source: Factorization machines\cite{rendle2010factorization})}
+\caption[Feature vector representation in the $SVM^{light}$ format]{Feature vector representation for ratings under the FM models (Source: Factorization machines \cite{rendle2010factorization})}
 \label{fig:featurevector}
 \end{figure}
 

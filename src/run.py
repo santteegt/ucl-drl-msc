@@ -82,7 +82,8 @@ class Experiment:
         avr = np.mean(R)
         # print('Average test return\t{} after {} timesteps of training'.format(avr,self.t_train))
         with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
-          f.write('Average test return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
+          # f.write('Average test return\t{} after {} timesteps of training\n'.format(avr, self.t_train))
+          f.write('Average test return\t{} after {} timesteps\n'.format(avr, self.t_train + FLAGS.test))
         # save return
         returns.append((self.t_train, avr))
         np.save(FLAGS.outdir+"/returns.npy",returns)
@@ -181,8 +182,9 @@ class Experiment:
 
     # with open(os.path.join(FLAGS.outdir, "output.log"), mode='a') as f:
     #     f.write('Wolpertinger actions: {} Exploration actions: {}\n'.format(count, expl))
-
+    print "<<=={} {}".format("TEST" if test else "TRAIN", self.t_test if test else self.t_train)
     self.env.render(mode='human')
+    print ">>=={}".format("TEST" if test else "TRAIN")
 
     return R
 

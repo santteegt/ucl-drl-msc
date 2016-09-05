@@ -6,6 +6,7 @@ import numpy as np
 import filter_env
 import ddpg
 import wolpertinger as wp
+import fmpolicy as fmp
 import tensorflow as tf
 import time
 flags = tf.app.flags
@@ -27,6 +28,8 @@ flags.DEFINE_float('epsilon', 0.2, 'epsilon probability for an epsilon greedy ex
 flags.DEFINE_integer('wp_total_actions', 1000000, 'total number of actions to discretize under the Wolpertinger policy')
 flags.DEFINE_string('wp_action_set_file', 'data/embeddings-movielens1m.csv', 'Embeddings file for Knn index generation')
 flags.DEFINE_bool('skip_space_norm', False, 'Skip action space normalization')
+
+flags.DEFINE_bool('fmpolicy', False, 'Train critic using the FM Policy')
 # ...
 # TODO: make command line options
 
@@ -59,12 +62,14 @@ class Experiment:
 
     wolp = None
     if FLAGS.wolpertinger:
-      wolp = wp.Wolpertinger(self.env, i=FLAGS.wp_total_actions,
-                             action_set=wp.load_action_set(FLAGS.wp_action_set_file,
-                                                           i=FLAGS.wp_total_actions, action_shape=dimA[0])
-                             ).g
+        wolp = wp.Wolpertinger(self.env, i=FLAGS.wp_total_actions,
+                               action_set=wp.load_action_set(FLAGS.wp_action_set_file,
+                                                             i=FLAGS.wp_total_actions, action_shape=dimA[0])
+                               ).g
+    elif FLAGS.fmpolicy:
+        wolp = fmp.FMPolicy(self.env).g
 
-    self.agent = ddpg.Agent(dimO=dimO, dimA=dimA, custom_policy=FLAGS.wolpertinger,
+    self.agent = ddpg.Agent(dimO=dimO, dimA=dimA, custom_policy=FLAGS.wolpertinger or FLAGS.fmpolicy,
                             env_dtype=str(self.env.action_space.high.dtype))
 
     returns = []
@@ -139,6 +144,7 @@ class Experiment:
 
       if FLAGS.random: #use random agent
         action_to_perform = self.env.action_space.sample()
+        self.agent.action = action_to_perform
         g_action = action_to_perform
       else:
         if FLAGS.egreedy_expl and np.random.uniform() < FLAGS.epsilon:
@@ -151,8 +157,9 @@ class Experiment:
 
           # Run Wolpertinger discretization
           action_to_perform = action
-          if FLAGS.wolpertinger and custom_policy is not None:
-            A_k = custom_policy(action)
+          if (FLAGS.wolpertinger or FLAGS.fmpolicy) and custom_policy is not None:
+            assert getattr(self.env, "obs_id", None) is not None, "Environment does not have obs_id attribute"
+            A_k = custom_policy(action) if FLAGS.wolpertinger else custom_policy(self.env.obs_id, action)
             rew_g = R * np.ones(len(A_k), dtype=self.env.action_space.high.dtype)
             term_g = np.zeros(len(A_k), dtype=np.bool)
             # for i in range(len(A_k)):

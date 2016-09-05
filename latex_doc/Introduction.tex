@@ -1,9 +1,9 @@
 \chapter{Introduction}
 \label{chapterlabel1}
 
-\section{Problem Overview}
+The volume of information available on the internet have been increasing rapidly with the explosive growth of the World Wide Web, e-Commerce and other online services, making difficult for users to find relevant products in a short period of time. To avoid this problem, many websites use recommendation systems to help customers to find items that satisfy their needs \cite{resnick1997recommender}. Suggestions for books on Amazon, or movies on Netflix, are real-world examples of Recommender Systems (RS) that have demonstrated that the evolution of RS and the web should go hand-in-hand to achieve the common goal of efficiently managing an ever growing set of items and  thus generate meaningful recommendations to a collection of users with common interests.
 
-The volume of information available on the internet have been increasing rapidly with the explosive growth of the World Wide Web, e-Commerce and other online services, making difficult for users to find relevant products in a short period of time. To avoid this problem, many websites use recommendation systems to help customers to find items that satisfy their needs \cite{resnick1997recommender}. Suggestions for books on Amazon, or movies on Netflix, are real-world examples of Recommender Systems (RS) that demonstrate that the evolution of RS and the web should go hand-in-hand. As a result, the final goal of a RS is to efficiently manage an ever growing set of items and generate meaningful recommendations to a collection of users with common interests.
+\section{Problem Overview}
 
 The design of such recommendation engines depends on the domain and the particular characteristics of the data available. While \textit{Collaborative Filtering} systems analyze historical interactions alone, \textit{Content-based} RS systems are based on user profile attributes; and finally, \textit{hybrid} techniques combine both of these designs. Latest studies in CF \cite{bobadilla2013recommender} showed that combining conceptual and usage information can improve the quality of web recommendation.
 
@@ -19,7 +19,11 @@ On the other hand, most recent research \cite{wang2015collaborative} have focuse
 
 Furthermore, a recent work presented by Dulac-Arnold et al. \cite{Dulac-Arnold2015} use deep neural neural networks and reinforcement learning in large discrete action spaces  and propose a new policy architecture that not only allows RL methods to be applied to large-scale learning problems, and to operate efficiently with a large number of actions, but also is able to generalize over the action set in logarithmic time. This algorithm showed to a promising convergence of the model among different continuous environments.
 
-The main objective of this project is to show that a deep reinforcement learning models are able to perform well under a recommendation system environment and generate good recommendations to users over a large set of items. After defining a simulated recommendation system environment under the Open AI gym framework, the performance of reinforcement learning agents based on the Deep Deterministic Policy Gradient algorithm with k-nearest neighbors (kNN) and Factorization Machine variants are compared. [***](Missing explanation of experiments and conclusions)
+\section{Dissertation Objectives and Contributions}
+
+The main objective of this project is to show that a deep reinforcement learning model is able to perform well under the RS domain by learning how to generate good recommendations to users over a large set of items. After defining the recommendation problem under the reinforcement learning domain, we describe a baseline model using the Deep Deterministic Policy Gradient algorithm with a k-nearest neighbours (kNN) policy for action space reduction, and trained it using a content-based and a collaborative-filtering representation of items. Additionally, we propose a new policy architecture based on a Factorization Machine model for ranking recommendation, and compare the performance of the reinforcement agent under different policy definitions and network configurations.
+
+A quantitative analysis on the effectiveness of the proposed policies and the average precision gathered by each reinforcement agent over the learning period showed that [***](Missing explanation of experiments and conclusions)
 
 \section{Dissertation Objectives and Structure}
 

@@ -52,34 +52,33 @@ When executing the DDPG algorithm, the critic is trained from samples generated 
 
 \section{FM Agent Model}
 
-Our implementation tries to replace the k-nearest neighbour computation in the Wolpertinger policy for a Bayesian Personalized Ranking (BPR) model using Factorization Machines to find the top-N items from a given state to then select the item that yields to the highest Q value in the long term. The deep reinforcement agent will finally learn using the same DDPG architecture as the baseline model.
+Our implementation attempts to replace the k-nearest neighbour computation in the Wolpertinger policy for a Bayesian Personalized Ranking (BPR) model using Factorization Machines to find the top-K items from a given state to then select the item that yields to the highest Q value in the long term. The deep reinforcement agent will finally learn using the same DDPG architecture as the baseline model.
 
-The Bayesian formulation presented in Rendle et al. in \cite{rendle2009bpr} find the correct personalized  ranking  for  all  items $i \in I$ by maximizing the posterior probability $p(\theta | >_u) \approx p(>_u | \theta) p(\theta)$ where $\theta$ represents the parameter vector of an arbitrary model class (e.g. matrix factorization) and $>_u$ is the desired but latent preference structure for user $u$. In order to guarantee a personalized total order, totality, antisymmetry and transitivity properties are fulfilled by defining the individual probability that a user really prefers item $i$ to $j$ as $p(i >_u j | \theta ) := \sigma(\hat{x}_{uij}(\theta))$ where $\sigma$ is the sigmoid function and $\hat{x}$ is an is  an  arbitrary  real-valued  function of the model parameter vector which captures the special relationship between user $u$, item $i$ and item $j$, such as Matrix Factorization of adaptive kNN.
+The Bayesian formulation presented in Rendle et al. in \cite{rendle2009bpr} find the correct personalized  ranking  for  all  items $i \in I$ by maximizing the posterior probability $p(\theta | >_u) \approx p(>_u | \theta) p(\theta)$ where $\theta$ represents the parameter vector of an arbitrary model class (e.g. matrix factorization) and $>_u$ is the desired but latent preference structure for user $u$. In order to guarantee a personalized order, totality, antisymmetry and transitivity properties are fulfilled by defining the individual probability that a user really prefers item $i$ to $j$ as $p(i >_u j | \theta ) := \sigma(\hat{x}_{uij}(\theta))$ where $\sigma$ is the sigmoid function and $\hat{x}$ is an is  an  arbitrary  real-valued  function of the model parameter vector which captures the special relationship between user $u$, item $i$ and item $j$, such as Matrix Factorization of adaptive kNN.
 
-Rendel S. showed in \cite{rendle2012factorization} that factorization models can be expressed using the Factorization Machines, including the BPR model for top-N recommendation, where vectors x are ordered by the score of $\hat{y}(x)$ and optimization is done over pairs of instance vectors $(x_i, x_j) \in \mathcal{D}$.
+Rendel S. showed in \cite{rendle2012factorization} that factorization models, such as the BPR model for top-K recommendation, can be expressed using Factorization Machines, where vectors $x$ are ordered by the score of $\hat{y}(x)$ and optimization is done over pairs of instance vectors $(x_i, x_j) \in \mathcal{D}$.
 
 \subsection{Proposed Approach}
 
-A new policy achitecture called FM-policy is proposed. It tries to improve how the agent learn to recommend under scenarios with high sparsity at the cost of linear complexity, compared to the sublinear complexity offered by the Wolpertinger policy. The FM-policy algorithm is described in Algorithm \ref{alg:fmpolicy}.
+The new policy architecture called \textit{FM-policy} tries to improve how an agent selects the action with the highest Q value by evaluating the top-k returned items from a given state (i.e. the item returned by the actor function and last item consumed by the user) by a pre-trained Factorization Machine model, rather than obtaining the k-nearest neighbors using the euclidean distance. As a result, the FM-policy maintains the sublinear complexity of the Wolpertinger policy but it introduces an stronger (factorization) model. The FM-policy algorithm is described in Algorithm \ref{alg:fmpolicy}.
 
 \begin{center}
- \begin{algorithm}[!htbp]
+ \begin{algorithm}[t]
     \SetAlgoLined\DontPrintSemicolon
     \caption{FM policy}
     \label{alg:fmpolicy}
     
     State $\mathbf{s}$ previously received from environment.\;
     $\hat{\mathbf{a}} = f_{\theta^{\pi}}(\mathbf{s})$ {Receive proto-action from actor}.\;
-    $\mathcal{A}_k = g_k(\mathbf{s})$ {Retrieve Top-k recommendation given state s}\;
+    $\mathcal{A}_k = g_k(\hat{\mathbf{a}}, \mathbf{s})$ {Retrieve Top-k recommendation using BPR-FM-model}\;
     $\mathbf{a}_{TOP} = \arg \max_{\mathbf{a}_j \in \mathcal{A}_k} Q_{\theta^{Q}}(\mathbf{s}, \mathbf{a}_j)$\;
-    \If{$\hat{\mathbf{a}} == \mathbf{a}_{TOP}$}{
-	$updateBPRModel(\mathbf{s}, \mathbf{a})$\;
-    }
+%    \If{$\hat{\mathbf{a}} == \mathbf{a}_{TOP}$}{
+%	$updateBPRModel(\mathbf{s}, \mathbf{a})$\;
+%    }
     Apply $\mathbf{a}_{TOP}$ to environment; receive $r$, $\mathbf{s}'$\;
   \end{algorithm}
 %\end{minipage}
 \end{center}
+After the actor function provides a proto-action $\hat{\mathbf{a}}$ in $\mathbb{R}$ given the current state or last consumed item by the user, a pre-trained BPR-FM model obtains the the Top-K recommendations based on the current observation: $(\hat{\mathbf{a}}, \mathbf{s})$. Then, the item in $\mathcal{A}_k$ that yields to the highest reward is applied to the environment.
 
-First, the actor function in the deep reinfocement learning architecture provides a proto-action in $\mathbb{R} \in {A}$ for a given state, while a pre-trained BPR-FM model obtains the the Top-k recommendations given the current state (or previous recommended item). Then, If the action predicted by the agent is the same as the item in list of k items that gives the highest Q value, the FM model is updated, and finally, the item that yields the highest reward is applied to the environment.
-
-Similarly to the baseline model, when executing the DDPG algorithm, the critic is trained from samples generated and stored in the replay buffer by the FM policy, while the policy gradient is taken at the true output in the actor function $f_{\theta^{\pi}}(s)$. As a reference, the pseudocode of the algorithm is included in Appendix \ref{app:ddpgfm}.
+Similarly to the baseline model, when executing the DDPG algorithm, the critic is trained from samples generated and stored in the replay buffer by the FM-policy, while the policy gradient is taken at the true output in the actor function $f_{\theta^{\pi}}(s)$. As a reference, the pseudocode of the DDPG algorithm is included in Appendix \ref{app:ddpgfm}.

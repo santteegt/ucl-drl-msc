@@ -1,6 +1,8 @@
 \chapter{Background}
 \label{sec:chapterlabel2}
 
+In this chapter, we will present all the necessary background concepts as well as some related work on recommendation systems and reinforcement learning methods that help to understand the work of this dissertation project. First, we give an overview of the existing recommendation systems techniques and approaches that have been used to solve the recommendation problem. Then, we introduce the basic concepts to define a reinforcement learning task and expose the first attempts made on the field to create reinforcement agents that learn to give recommendation to users. Finally, recent work on reinforcement learning algorithms using deep learning is reviewed.
+
 \section{Recommender Systems}
 
 In recent years, there has been growing focus on the study of Recommender Systems (RSs), where different techniques have been published in order to to address the problem of information overload on the Internet. Consequently, the evolution of RS and the web usually go hand-in hand. Resnick and Varian\cite{resnick1997recommender}  defined RS as systems that help users limit their search by supplying a list of items that might interest them. Such systems has found an active application area for diverse Information Retrieval, Web Mining and Machine Learning techniques that help to solve typical recommendation problems. Additionally,  different RS mechanisms have been categorized depending on the way they analyze the data sources to find affinities between users and items. 
@@ -9,8 +11,8 @@ The most general setting in which recommender systems are studied is presented i
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.9]{images/uimatrix}
 \caption[Typical user rating matrix]{Typical user ratings matrix, where each cell $r_{u,i}$ corresponds to the rating of user u for item i.}
+\includegraphics[scale=0.9]{images/uimatrix}
 \label{fig:iomatrix}
 \end{figure}
 
@@ -78,8 +80,8 @@ Latest studies in CF showed that combining conceptual (explicit) and usage (impl
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.8]{images/taxonomyrs}
 \caption[Recommender Systems taxonomy]{Recommender System taxonomy. Source: Recommender systems survey\cite{bobadilla2013recommender}}
+\includegraphics[scale=0.8]{images/taxonomyrs}
 \label{fig:taxonomy}
 \end{figure}
 
@@ -96,8 +98,8 @@ RL uses a formal framework which defines the continuous interaction in terms of 
 
  \begin{figure}[h]
 \centering
-\includegraphics[scale=2]{images/rlenvironment}
 \caption[Agent-Environment interface in a Reinforcement Learning problem]{The Agent-Environment interface in a Reinforcement Learning problem. Source: Reinforcement Learning: a Survey\cite{sutton1998reinforcement} }
+\includegraphics[scale=2]{images/rlenvironment}
 \label{fig:rlenvironment}
 \end{figure}
 

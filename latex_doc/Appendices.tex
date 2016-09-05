@@ -1,11 +1,11 @@
 \addcontentsline{toc}{chapter}{Appendices}
 
-\chapter{DDPG Algorithm using the FM-policy Architecture}
-\label{app:ddpgfm}
-
 % The \appendix command resets the chapter counter, and changes the chapter numbering scheme to capital letters.
 %\chapter{Appendices}
 \appendix
+\chapter{DDPG Algorithm using the FM-policy Architecture}
+\label{app:ddpgfm}
+
 \chapter{Transition probability Matrix algorithm}
 \label{app:trans_prob_alg}
 
@@ -45,10 +45,8 @@
     \KwInput{$R$: Ratings Matrix; $\mathcal{P}$: Transition Prob. Matrix; $\mathcal{I}$: Items set\;}
 %    \KwResult{$\textbf{s}(\textbf{e}, \textbf{a}; \textbf{x}, \boldsymbol{\lambda})$}
     
-    \tcc{selects an active user}
-    $u_{random} \leftarrow selectRandomUser(R)$\;
-    \tcc{initial guided exploration}
-    $state \leftarrow selectLikelyItem(\mathcal{I}, u_{random})$\;
+    $u_{random} \leftarrow selectRandomUser(R)$ \textit{\# selects an active user}\;
+    $state \leftarrow selectLikelyItem(\mathcal{I}, u_{random})$ \textit{\# initial guided exploration}\;
     $term \leftarrow False$\;
     \While{$not$ $term$}{
     	$action \leftarrow waitForAgentAction()$\;
@@ -75,6 +73,34 @@
     }
   \end{algorithm}
 \end{center}
+
+\chapter{Hyperparameter configuration for models}
+\label{app:hyperparameter}
+
+\begin{table}[!htbp]
+%\begin{center}
+\centering
+\begin{tabular}{ |l|c|c|c| }
+  \hline
+%  \multicolumn{2}{|c|}{100K Movielens} & 1M Movielens \\
+  \textbf{Hyperparameter}& \textbf{DRL-kNN-CB} & \textbf{DRL-kNN-CF} & \textbf{DRL-FM} \\
+  \hline
+  Hidden Layer 1 Size & 400 & 1,000 & 400 \\ \hline
+  Hidden Layer 2 Size & 300 & 1,000 & 400 \\ \hline
+  Replay Memory size & \multicolumn{3}{c|}{50,000} \\ \hline
+  $k-NN/Top-K$ & \multicolumn{3}{c|}{5\% of action set size} \\ \hline
+  $\mu$ $L_2$ reg. & \multicolumn{3}{c|}{0} \\ \hline
+  $\mathcal{Q}$ $L_2$ reg. & \multicolumn{3}{c|}{0.01} \\ \hline
+  $\nabla \mu$ learning rate & \multicolumn{3}{c|}{0.0001} \\ \hline
+  $\nabla \mathcal{Q}$ learning rate & \multicolumn{3}{c|}{0.001} \\ \hline
+  $\tau$ & \multicolumn{3}{c|}{0.001} \\
+  $\gamma$ & \multicolumn{3}{c|}{0.99} \\
+  \hline
+\end{tabular}
+%\end{center}
+\caption{Hyperparameter and network settings for DRL models}
+\label{table:hyperparameters}
+\end{table}
 
 %\chapter{Colophon}
 %\label{appendixlabel3}

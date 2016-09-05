@@ -28,6 +28,7 @@ System Requirements and Setup
 - `Virtualenv`
 - `Tensorflow`
 - `Jupyter notebook`
+- `Graphlab API 2.1` (with Academic License)
 
 
 Dependencies
@@ -51,6 +52,8 @@ $ source .venv/bin/activate
 (venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py2-none-any.whl
 (venv)$ pip install --upgrade $TF_BINARY_URL
 (venv)$ pip install pymongo pandas gensim fastFM matplotlib scikit-learn scipy
+(venv)$ pip install --upgrade --no-cache-dir https://get.graphlab.com/GraphLab-Create/2.1/hernan.toral.15@ucl.ac.uk/55E9-2088-3AF8-120F-D171-1AAB-95A3-B077/GraphLab-Create-License.tar.gz
+
 ```
 ## FLANN Installation
 

@@ -21,13 +21,10 @@ Furthermore, a recent work presented by Dulac-Arnold et al. \cite{Dulac-Arnold20
 
 \section{Dissertation Objectives and Contributions}
 
-The main objective of this project is to show that a deep reinforcement learning model is able to perform well under the RS domain by learning how to generate good recommendations to users over a large set of items. After defining the recommendation problem under the reinforcement learning domain, we describe a baseline model using the Deep Deterministic Policy Gradient algorithm with a k-nearest neighbours (kNN) policy for action space reduction, and trained it using a content-based and a collaborative-filtering representation of items. Additionally, we propose a new policy architecture based on a Factorization Machine model for ranking recommendation, and compare the performance of the reinforcement agent under different policy definitions and network configurations.
+The main objective of this project is to show that a deep reinforcement learning model is able to perform well under the RS domain by learning how to generate good recommendations to users over a large set of items. After defining the recommendation problem under the reinforcement learning domain, we describe a baseline model using the Deep Deterministic Policy Gradient algorithm with a k-nearest neighbours (kNN) policy for action space reduction, and trained it using a content-based and a collaborative-filtering representation of items. Additionally, we propose a new policy architecture based on a Factorization Machine (FM) model for ranking recommendation, and compare the performance of the reinforcement agent under different policy definitions and network configurations.
 
-A quantitative analysis on the effectiveness of the proposed policies and the average precision gathered by each reinforcement agent over the learning period showed that [***](Missing explanation of experiments and conclusions)
+Then, for each model we evaluate the average return obtained by the learning agent, as well as the average precision along user sessions or episodes of learning. Finally, a quantitative and qualitative analysis of the results shows that both the FM-based policy and the kNN-based policy architectures are able to generate good recommendations, however, the former outperforms the baseline models and presents an slightly better progression on its performance over the learning steps.
 
 \section{Dissertation Objectives and Structure}
 
 The remaining chapters of this report are organized as follows. Chapter \ref{sec:chapterlabel2} defines the recommender problem and introduces Reinforcement Learning. Following, it reviews some related work that has been made for modeling recommender systems using reinforcement learning approaches and deep learning. The proposed model and its implementation details are presented in Chapter \ref{sec:chapterlabel3}, while the experimental evaluation and results are analyzed in Chapter \ref{sec:chapterlabel4}. Finally, we present a summary of lessons learned and conclusions, and propose some ideas for future work.
-
-
-%Inline citation: \bibentry{example-citation}

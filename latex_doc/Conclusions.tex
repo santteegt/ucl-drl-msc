@@ -1,18 +1,18 @@
 \chapter{Conclusion and Discussion}
 \label{chapterlabel4}
 
+In this chapter, we summarize the work carried out during this dissertation and discuss the results obtained in the experiments. Then, we expose the drawbacks and limitations found during the project. Finally, we describe some future directions that can be taken to improve the proposed approaches that solve the recommender task.
+
 \section{Summary}
+
+By and large, we have demonstrated that recent advances in deep reinforcement learning allow us to define agents that learn to generate good recommendations to users by reducing the complexity of acting over a large set of items. After defining the recommendation problem under the reinforcement learning domain, we describe a baseline model using the Deep Deterministic Policy Gradient algorithm with a k-nearest neighbours policy for action space reduction, and trained it using a content-based and a collaborative-filtering representation of items. Additionally, we propose a new policy architecture based on a Factorization Machine model for Top-K ranking recommendation.
+
+To evaluate the performance of each model under the recommender task we monitor the average return obtained by the reinforcement agents over the learning episodes, as well as the average precision along user sessions. Then, a quantitative and qualitative analysis of the results demonstrate that the FM-policy architecture outperforms the baselines and presents an slighty better progression on its performance, while the DRL-kNN-CB model has much less speedup during the first episodes but after 5000 steps it starts to stabilize. As a result, the DDPG algorithm using any of the above policies is able to perform well under the recommender system domain, nevertheless, a factorization machine model helps to build a stronger policy than the k-NN algorithm.
+
+During the evaluation of the policy architectures, we noticed about certain limitations on the simulated environment that we define to emulate the user behaviour under the recommender task: (1) the transition matrix and ratings predictor where constructed using the basic techniques exposed in Chapter \ref{sec:chapterlabel4} which would tend to fail under scenarios with high sparsity; and (2) there were cases where the same item was recommended more than twice under the same user session. Even if it is not wrong, users typically want to find different items than the ones previously recommended. Therefore, novelty and/or diversity should be taken into account during recommendations either in the simulated environment or in the policy definition.
 
 \section{Future Work}
 
--More robust definition of the simulated environment
+Possible next steps can attempt to define a more robust definition of the simulated environment under the OpenAI gym framework, specially in terms of modelling the user behaviour, or improving the ratings predictor for scenarios under high sparsity (e.g. using a stronger model like the Factorization Machine with Monte Carlo Markov Chain inference \cite{rendle2012factorization}). Altertatively, the model could be connected to a live recommender system in order to test its performance under a real scenario.
 
---robust model of user behaviour
-
---using a live recommender system
-
---monte carlo tree search
-
--Try to solve the problem using the Q-learning Model-based acceleration algorithm: Normalized Advantage Functions (NAF) to apply Q-learning with experience replay to continuous tasks. it outperforms actor-critic based algorithm (DDPG)
-
--test the model using dataset with higher sparsity level
+Further research may focus on testing other deep reinforcement learning algorithms under the recommender task, such as deep neural networks with Monte Carlo tree search \cite{silver2016mastering} or the Normalized Advantage Functions (NAF) model \cite{gu2016continuous} which outperforms the actor-critic based methods such as DDPG. Finally, the FM-policy could also be redefined to consider a diversity parameter when selecting the next item to recommend.

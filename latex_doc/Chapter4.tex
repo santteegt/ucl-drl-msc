@@ -58,7 +58,7 @@ To evaluate the strength and accuracy of the deep reinforcement learning model u
 %\item \textbf{FM-MCMC}: \textit{Factorization Machine with Monte Carlo Markov Chain inference}  uses FM based on the Bayeasian inference with a Gibbs sampling technique that generates the distribution of $\hat{y}$ by sampling the conditional posterior distribution for each model parameter. This model was chosen as the baseline model for comparison as it it outperforms other learning approaches like SGD and ALS, and also because it integrates the regularization parameter into the model, which avoids a time-consuming search for the optimal hyperparameters. The only hyperparameter that remains for MCMC is the initialization of the standard deviation$\sigma$ for the Gibbs sampler.
 \item \textbf{DRL-kNN-CB}: the \textit{DRL using Content-based item similarity} model uses the DDPG algorithm with a bag-of-words feature vectors to represent actions and states. The k-nearest neighbours index is then created using the KDtree algorithm \cite{friedman1977algorithm} (with 30 leaf nodes cheked) to find the k-closest set of similar items $\mathcal{A}_k$ from the action estimated by the actor function. Finally, the Wolpertinger policy applies the action in $\mathcal{A}_k$ that yields to the maximum return.
 \item \textbf{DRL-kNN-CF}: the \textit{DRL with Item-based similarity} model uses the same policy and learning algorithm as the model described above but it implements an item-to item version of the k-NN algorithm by using the item vector representation from the user rating matrix.
-\item \textbf{DRL-FM}: the \textit{DRL with Factorization Machines policy} model replaces the k-NN algorithm from the models previously described with the BPR-FM model to return the Top-K items that can be recommended from a given state. Then, the FM-policy will select the action from the top-K recommendations that yields to the highest Q value in the long term.
+\item \textbf{DRL-FM}: the \textit{DRL with Factorization Machines policy} model replaces the k-NN algorithm from the models previously described with the BPR-FM model to return the Top-K items that can be recommended from a given state. Then, the FM-policy will select the action from the top-K recommendations that yields to the highest Q value in the long term. This model can be considered as a hybrid approach as the DDPG algorithm uses a content-based representation of items to estimate the next action, whereas the FM-policy rank items using the information in the user rating matrix.
 \end{itemize}
 %
 %For the FM models, we use the \textit{fastFM}\footnote{\url{https://github.com/ibayer/fastFM}} library introduced by Bayer I. in \cite{bayer2015fastfm} that offers an efficient python implementationn of the FM learning algorithms including MCMC and BRP-OPT with SGDthe ratings file was transformed to the $SVM^{light}$ representation introduced in \cite{joachims1999making}. 
@@ -81,3 +81,41 @@ In order to train and use the FM model, items and the current state respectively
 \end{figure}
 
 \section{Results}
+
+The first conducted set of experiments used the 100k Movielens dataset and evaluated the performance of the proposed models after every 100 steps of learning.  Figure \ref{fig:return_train} shows the average return obtained by each agent during learning episodes. It can be seen that our proposed policy architecture outperforms the baselines by obtaining an mean average return of $~ 35$ with an slighty better progression of the performance during 20000 steps, whereas the DRL-kNN-CB model has much less speedup during the first episodes but after 5000 steps it starts to stabilize getting a mean average return of $~ 29$. As a result, the FM-policy is more efficient when finding items that yield to higher rewards than the Wolpertinger policy, evidencing that factorization machine learns latent factors that help to build stronger recommendation models than k-NN.
+
+\begin{figure}[!htbp]
+\centering
+\caption{Models performance during training in the 100k Movielens recommender task}
+\includegraphics[scale=0.6]{images/eval_return_train}
+\label{fig:return_train}
+\end{figure}
+
+On the other hand, the DRL-kNN-CF baseline approach does not outperform the content-based model (Its mean average return is $~ 20$), mainly due to the dimensionality of the item representation and consequently the model network size. It also reflects how the representation of the action space affects the behaviour of the k-NN based policy when finding the nearest item that produces the highest reward. Even though the model seems to have a very slow convergence behaviour, it obtains rewards significantly higher that an agent using a random policy.
+
+At the same time, we evaluated the average precision gathered by each model agent over episodes or user sessions. Figure \ref{fig:precision_train} shows that the DRL-kNN-CB model precision fluctuates on values near 0.9, while the DRL-kNN-CF model starts with has lower precision when it starts learning and episodes later it only obtains accuracy values between 0.4 and 0.6. Similarly, the DRL-FM model precision is very low during the first episodes but then it increases sharply and maintains average precision values near one.
+
+\begin{figure}[!htbp]
+\centering
+\caption{Average precision of recommendations during episodes of learning in the 100k Movielens recommender task}
+\includegraphics[scale=0.5]{images/eval_precision_train}
+\label{fig:precision_train}
+\end{figure}
+
+In like manner and with the purpose of demonstrate the importance of the exploration/exploitation trade-off, we test the models by switching off learning (and hence exploration of items)after every 100 steps of training to evaluate how the reinforcement agents act by just exploiting the current learned model parameters. Their behaviour is presented in Figure \ref{fig:return_test} and Figure \ref{fig:precision_test}. As can be seen, the behaviour of the DRL-kNN-CF model and the random policy does not change, but the performance of the DRL-kNN-CB model is approximately similar to the DRL-FM model, obtaining a mean average return of $~34$ and $~ 35$ respectively.
+
+On the other hand, in terms of average precision, both models have episodes when the precision of recommended items lies between 0.9 and 1. Even if it seems to be a good behaviour for an agent, there are certain cases where the same item is recommended more than twice under the same user session. This scenario appears as the simulated environment does not take into account diversity of items being recommended.
+
+\begin{figure}[t]
+\centering
+\caption{Agent's performance by pure exploitation of the model in the 100k Movielens recommender task}
+\includegraphics[scale=0.6]{images/eval_return_test}
+\label{fig:return_test}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\caption{Average precision of recommendations by pure exploitation of the model in the 100k Movielens recommender task}
+\includegraphics[scale=0.6]{images/eval_precision_test}
+\label{fig:precision_test}
+\end{figure}

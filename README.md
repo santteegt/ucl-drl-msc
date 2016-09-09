@@ -88,11 +88,17 @@ Reward logs obtained by an agent while running the model can be read using the f
 (venv)$ cd ucl-drl-msc
 (venv)$ tail -F ddpg-results/experiment1/output.log
 ```
-Additionally, to visualize the model parameters during training, you can run the Tensorflow dashboard using the following command
+Additionally, to visualize the model parameters during training, you can run the Tensorflow dashboard using the following command:
 
 ```bash
 (venv)$ cd ucl-drl-msc
 (venv)$ python src/dashboard.py --exdir ddpg-results/
+```
+
+Finally, to stop the training process, it is necessary to run the following command:
+```bash
+(venv)$ cd ucl-drl-msc/bin
+(venv)$ sh stop.sh
 ```
 
 ### License

@@ -28,7 +28,7 @@ The following packages are needed to execute the project models
 
 - `Python 2.7`
 - `Virtualenv`
-- `OpenAI gym`
+- `OpenAI gym` (included in this project)
 - `Tensorflow`
 - `Jupyter notebook`
 - `Graphlab Create API 2.1` (with Academic License)
@@ -39,9 +39,9 @@ The following packages are needed to execute the project models
 To setup the environment, the following commands need to be executed:
 
 ```bash
-$ git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git
+$ git clone https://github.com/santteegt/ucl-drl-msc.git
 
-$ cd ucl-cfdrl-msc
+$ cd ucl-drl-msc
 $ git submodule update --init --recursive
 $ mkdir .venv
 $ virtualenv --system-site-packages --python=python2.7 .venv/

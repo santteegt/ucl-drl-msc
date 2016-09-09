@@ -13,16 +13,15 @@ This is a project developed as part of my thesis dissertation for the M.Sc progr
 
 ### Overview
 
-1. [System Dependencies](#requirements)
+1. [Project-Dependencies](#project-dependencies)
 2. [Setup](#setup)
 3. [Datasets](#datasets)
-4. [Running the environment](#run)
-5. [Evaluation of experiments](#experiments)
+4. [Execution](#execution)
 5. [License](#license)
 
 ---
 
-### System Dependencies
+### Project-Dependencies
 
 The following packages are needed to execute the project models
 
@@ -66,7 +65,7 @@ Then,
 * To use the Movielens-100k dataset, extract the contents of the data-movielens100k.zip file into the `data` folder
 * To use the Movielens-1M dataset, extract the contents of the data-movielens1m.zip file into the `data` folder
 
-### Running the environment
+### Execution
 
 To make the running process more easier, executable files for each experiment are provided under the `bin` folder (make sure to activate the virtualenv before running the exec file):
 

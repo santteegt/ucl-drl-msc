@@ -3,8 +3,42 @@
 % The \appendix command resets the chapter counter, and changes the chapter numbering scheme to capital letters.
 %\chapter{Appendices}
 \appendix
-\chapter{DDPG Algorithm using the FM-policy Architecture}
+\chapter{DDPG Algorithm using a Custom Policy Architecture}
 \label{app:ddpgfm}
+\begin{center}
+ \begin{algorithm}[!htbp]
+%    \SetAlgoLined
+    \DontPrintSemicolon
+    \caption{DDPG algorithm}
+    \label{alg:ddpg_alg}
+
+    Randomly initialize actor and critic networks $f_{\theta^{\pi}}$ $Q_{\theta^Q}$\;
+    Initialize target network $f_{\theta^{\pi}}$ and $Q_{\theta^{Q}}$ with weights
+    $\theta^{Q'} \leftarrow \theta^Q$, $\theta^{\pi'} \leftarrow \theta^{\pi}$\;
+    Initialize policy model $g$ with elements in $\mathcal{A}$\;
+    Initialize replay buffer B\;
+    \For{episode = 1 \KwTo $M$}{
+    	Initialize a random process $\mathcal{N}$ for action exploration\;
+	Receive initial observation state $\mathbf{s}_1$ from environment\;
+	\For{t = 1 \KwTo $T$}{
+		Select action $\mathbf{a}_t = \pi_{\theta(\mathbf{s}_t)}$ according current policy and exploration method\;
+		Send action $\mathbf{a}_t$ and observe reward  $r_t$ and new state $\mathbf{s}_{t + 1}$\;
+		Store transition $(\mathbf{s}_t, \mathbf{a}_t, r_t, \,mathbf{s}_{t+1})$ in B\;
+		Sample a random minibatch of N transitions from B\;
+		Set $y_i = r_i + \gamma \cdot Q_{\theta^{Q'}}(\mathbf{s}_{i+1}, \pi_{\theta'}(\mathbf{s}_{i+1}))$\;
+		Update the critic by minimizing the loss: \;
+		$L(\theta^Q) = \frac{1}{N}\sum_{i}[y_i - Q_{\theta^{Q}}(\mathbf{s_i}, \mathbf{a}_i)]^2$\;
+		Update the actor using the sampled gradient:\;
+		$\nabla_{\theta^{\pi}}f_{\theta^{\pi}}|_{\mathbf{s}_i} \approx \frac{1}{N}\sum_i \nabla_{\mathbf{a}}Q_{\theta^{Q}}(\mathbf{s}, \mathbf{\hat{a}}) |_{\mathbf{\hat{a}}=f_{\theta^{\pi}}(\mathbf{s}_i)} \cdot \nabla_{\theta^{\pi}}f_{\theta^{\pi}}(\mathbf{s}) |_{\mathbf{s}_i}$\;
+		Update the target networks:\;
+		$\theta^{Q'} \leftarrow \tau\theta^Q + (1 - \tau)\theta^{Q'}$\;
+		$\theta^{\pi'} \leftarrow \tau\theta^{\pi} + (1 - \tau)\theta^{\pi'}$\;
+	}
+    }
+  \end{algorithm}
+\end{center}
+
+The pseudocode presented above is based in the work presented by Dulac-Arnold et al. in \cite{Dulac-Arnold2015}
 
 \chapter{Transition probability Matrix algorithm}
 \label{app:trans_prob_alg}
@@ -101,6 +135,93 @@
 \caption{Hyperparameter and network settings for DRL models}
 \label{table:hyperparameters}
 \end{table}
+
+\chapter{Implementation notes and Installation Requirements}
+\label{app:implementation}
+
+\section{System Dependencies}
+
+The following packages are needed to execute the project models
+
+\begin{itemize}
+\item Python 2.7
+\item Virtualenv
+\item Tensorflow
+\item Jupyter notebook
+\item Graphlab Create API 2.1 (with Academic License)
+\end{itemize}
+
+\section{Setup}
+
+To setup the environment, the following commands need to be executed:
+
+\begin{lstlisting}[language=bash]
+$ git clone https://github.com/santteegt/ucl-drl-msc
+$ cd ucl-drl-msc
+$ git submodule update --init --recursive
+$ mkdir .venv
+$ virtualenv --system-site-packages --python=python2.7 .venv/
+$ source .venv/bin/activate
+
+(venv)$ cd gym
+(venv)$ pip install -e .
+# installation for Mac OS X. For other platforms, 
+# refer to 
+# https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html
+(venv)$ export TF_BINARY_URL=
+https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py2-none-any.whl
+(venv)$ pip install --upgrade $TF_BINARY_URL
+(venv)$ pip install pymongo pandas gensim fastFM matplotlib scikit-learn scipy
+(venv)$ pip install --upgrade --no-cache-dir 
+https://get.graphlab.com/GraphLab-Create/2.1/hernan.toral.15@ucl.ac.uk/
+55E9-2088-3AF8-120F-D171-1AAB-95A3-B077/GraphLab-Create-License.tar.gz
+\end{lstlisting}
+
+\section{Datasets}
+
+Movielens datasets files were pre-processed for running the models. They can be downloaded from the following URL: \url{https://mega.nz/#F!oFYFmZyQ!UERNs4e3Jvvkml2zNj2ngA}. Then, you can follow the instructions below:
+
+\begin{itemize}
+\item Extract and copy the contents of \textit{FMmodel.zip} to the \textit{data} folder
+\item To use the Movielens-100k dataset, extract the contents of the \textit{data-movielens100k.zip} file into the \textit{data} folder
+\item To use the Movielens-1M dataset, extract the contents of the \textit{data-movielens1m.zip} file into the 'textit{data} folder
+\end{itemize}
+
+\section{Running the environment}
+
+To make the running process more easier, executable files for each experiment are provided under the `bin` folder (make sure to activate the virtualenv before running the exec file):
+
+\begin{enumerate}
+\item \textbf{DRL-kNN-CB}: \textit{run-v2.sh} runs the model for the Movielens 100k dataset, while \textit{run-v0.sh} runs the model for the Movielens 1M dataset
+\item \textbf{DRL-kNN-CF}: \textit{run-v1.sh} runs the model for the Movielens 100k dataset.
+\item \textbf{DRL-FM}: \textit{run-v3.sh} runs the model for the Movielens 100k dataset.
+\item \textbf{Random agent}: \textit{run-v1-random.sh} and \textit{run-v2-random.sh} runs the DDPG algorithm using a random agent
+\end{enumerate}
+
+Human readable rendering of recommendations made while running the model can be seen using the following command:
+
+\begin{lstlisting}[language=bash]
+(venv)$ cd ucl-drl-msc
+(venv)$ tail -F run.log
+\end{lstlisting}
+
+Reward logs obtained by an agent while running the model can be read using the following command:
+
+\begin{lstlisting}[language=bash]
+(venv)$ cd ucl-drl-msc
+(venv)$ tail -F ddpg-results/experiment1/output.log
+\end{lstlisting}
+
+Additionally, to visualize the model parameters during training, you can run the Tensorflow dashboard using the following command
+
+\begin{lstlisting}[language=bash]
+(venv)$ cd ucl-drl-msc
+(venv)$ python src/dashboard.py --exdir ddpg-results/
+\end{lstlisting}
+
+\section{License}
+
+The Project code is mostly developed under the Apache2 license, except for the module developed using Graphlab Create which is based on an Academic License provided by Turi.
 
 %\chapter{Colophon}
 %\label{appendixlabel3}

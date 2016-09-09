@@ -16,6 +16,7 @@ The recommender system environment, characterized by a set of \textit{n} items t
 The transition probability matrix is generated using the ideas exposed by Yildirim et al. in \cite{yildirim2008random} to build a random walk recommender system using a Markov Chain mode,l where the probability of being in a state only depends on the previous step $Pr(X_{u, k+1} = i | X_{u, k})$. The algorithm presented in Appendix \ref{app:trans_prob_alg} details the underlying process to set up the environment.
 
 \subsection {Simulation algorithm}
+\label{sec:simalg}
 
 The implemented algorithm is presented in Appendix \ref{app:simulated_env} and describes the complete simulation process of the recommendation task. At each time-step, the agent presents an item \textit{i} to the user with action $\mathcal{A}_i$. The user then accepts the item according to the transition probability matrix $\mathcal{P}$ or selects a random item. To simulate the user patience in a session as in \cite{Dulac-Arnold2015}, an episode of learning ends with probability 0.1 if the user accepts the item, and with probability 0.2 if a random item is selected instead. Finally, after each episode the environment is reset by selecting a random item from a likely subset for an specific user provided by a single item-based collaborative filtering model based on the similarity between items.
 
@@ -23,7 +24,11 @@ The implemented algorithm is presented in Appendix \ref{app:simulated_env} and d
 
 The 100-k and 1M Movielens datasets \cite{harper2016movielens} from the GroupLens Reseach Lab\footnote{\url{http://grouplens.org/datasets/movielens/}} are used to train and test the implemented deep reinforcement agents. Table \ref{table:dataset} summarizes the statistical properties of each dataset. The ratings files were pre-processed in order to generate the user rating matrix and the transition probability matrix. Additionally, train and test sets were generated to apply a five-fold cross validation to the baseline CF ratings predictor in the simulated environment.
 
-\begin{table}[!htbp]
+\section{Evaluation Scheme}
+
+For each model proposed below, we measure the average return obtained by the learning agent over steps, as well as the average precision along user sessions or episodes of learning. Finally, a quantitative and qualitative analysis of the results of each model are compared and contrasted against the performance of a random policy which acts randomly by sampling the next action to perform.
+
+\begin{table}[t]
 %\begin{center}
 \centering
 \begin{tabular}{ |l|r|r| }
@@ -46,10 +51,6 @@ The 100-k and 1M Movielens datasets \cite{harper2016movielens} from the GroupLen
 \label{table:dataset}
 \end{table}
 
-\section{Evaluation Scheme}
-
-For each model proposed below, we measure the average return obtained by the learning agent over steps, as well as the average precision along user sessions or episodes of learning. Finally, a quantitative and qualitative analysis of the results of each model are compared and contrasted against the performance of a random policy which acts randomly by sampling the next action to perform.
-
 \section{Baselines and Experimental Settings}
 
 To evaluate the strength and accuracy of the deep reinforcement learning model under the recommender system environment, we use two variants of the baseline model described in section \ref{sec:baseline}, and a model using the new policy architecture. These models are:
@@ -63,7 +64,7 @@ To evaluate the strength and accuracy of the deep reinforcement learning model u
 %
 %For the FM models, we use the \textit{fastFM}\footnote{\url{https://github.com/ibayer/fastFM}} library introduced by Bayer I. in \cite{bayer2015fastfm} that offers an efficient python implementationn of the FM learning algorithms including MCMC and BRP-OPT with SGDthe ratings file was transformed to the $SVM^{light}$ representation introduced in \cite{joachims1999making}. 
 
-The hyperparameters and network settings used in the experiments are detailed in Appendix \ref{app:hyperparameter}. The network configuration for the DDPG algorithm in the DRL-kNN-CB and DRL-FM models consist of a fully connected network with two hidden layers of 400 and 300 neurons each. while the DRL-kNN-CF model consists of two hidden layers of 1000 neurons. The input and output of the network are the current state (item previously recommended) and the item that the agents predicts to be the next recommendation, respectively. Therefore, their size depends on the vector representation of items in each model.
+The hyperparameters and network settings used in the experiments are detailed in Appendix \ref{app:hyperparameter}. The network configuration for the DDPG algorithm in the DRL-kNN-CB and DRL-FM models consist of a fully connected network with two hidden layers of 400 and 300 neurons each. f the DRL-kNN-CF model consists of two hidden layers of 1000 neurons. The input and output of the network are the current state (item previously recommended) and the item that the agents predicts to be the next recommendation, respectively. Therefore, their size depends on the vector representation of items in each model.
 
 For the DRL-kNN-CB model, feature vectors for each item were created using a combination of word embeddings extracted using \textit{word2vec}\footnote{\url{https://radimrehurek.com/gensim/index.html}}, and genre categorization as a binary vector. The final feature vector consists of 119 elements. Whereas, for the DRL-kNN-CF, items representation were extracted from the user rating matrix, so their size are 943 and 6040 elements for the 100-k and 1M datasets respectively.
 
@@ -73,49 +74,118 @@ To build the proposed policy architectures, we use the \textit{NearestNeighbors}
 
 In order to train and use the FM model, items and the current state respectively are formatted using the $SVM^{light}$ representation introduced in \cite{joachims1999making}. Figure \ref{fig:featurevector} presents an example of the feature vector used by the FM model, where the first $|\mathcal{U}|$ binary indicators variables (blue) represent the active user of a transaction, and the next $|\mathcal{I}|$ binary indicator variables (red) hold the active item. Each feature vector also contains normalized indicator variables (yellow) for all other items the user has ever rated. Finally, the vector contains a variable (green) holding the time when the rating was registered, and another variable containing information of the last item the user has rated before.
 
-\begin{figure}[h]
+\begin{figure}[t]
 \centering
-\caption{Feature vector representation for the FM model. Source: \textit{Factorization machines} \cite{rendle2010factorization}}
 \includegraphics[scale=0.9]{images/featurevectors}
+\caption{Feature vector representation for the FM model. Source: \textit{Factorization machines} \cite{rendle2010factorization}}
 \label{fig:featurevector}
 \end{figure}
 
+The source code developed to train the models can be downloaded from \url{https://github.com/santteegt/ucl-drl-msc}. In general, we used Tensorflow\footnote{\url{https://www.tensorflow.org/}} to build the deep learning model with a soft placement compatibility, so experiments can be easily run in any computer even if it does have a GPU device or not.  Further information about the implementation and the installation requirements to run the experiments can be found in Appendix \ref{app:implementation}.
+
 \section{Results}
 
-The first conducted set of experiments used the 100k Movielens dataset and evaluated the performance of the proposed models after every 100 steps of learning.  Figure \ref{fig:return_train} shows the average return obtained by each agent during learning episodes. It can be seen that our proposed policy architecture outperforms the baselines by obtaining an mean average return of $~ 35$ with an slighty better progression of the performance during 20000 steps, whereas the DRL-kNN-CB model has much less speedup during the first episodes but after 5000 steps it starts to stabilize getting a mean average return of $~ 29$. As a result, the FM-policy is more efficient when finding items that yield to higher rewards than the Wolpertinger policy, evidencing that factorization machine learns latent factors that help to build stronger recommendation models than k-NN.
+The following set of experiments used the 100k Movielens dataset and evaluate the performance of the proposed models at every 100 steps of learning. Due to the lack of computational resources, the experiments were carried out on a Macbook Pro 2.9 GHz Intel Core i5 with 8 GB RAM and results were analyzed after 20000 timesteps of learning (except for the DRL-kNN-CF model as it was only train using 10000 steps). 
 
-\begin{figure}[!htbp]
+Figure \ref{fig:return_train} shows the average return obtained by each agent during training while the \textit{train} column in Table \ref{table:return_table} summarizes the performance of each model along 5 different checkpoints of learning. It can be seen that our proposed policy architecture outperforms the baselines by obtaining a mean average return of $35$ with an slightly increasing progression of its performance during the process, whereas the DRL-kNN-CB model obtains less return during the first thousand episodes, but after 5000 steps it starts to get higher values and the average return stabilizes over $29$ approximately. As a result, the FM-policy is more efficient when finding items that yield to higher rewards than the Wolpertinger policy, evidencing that factorization machine learns latent factors that help to build a stronger policy architecture than k-NN.
+%
+%\begin{table}[t]
+%\centering
+%\begin{tabular}{ |l|r|r|r|r| }
+%  \hline
+%  Steps & \textbf{Random} & \textbf{DRL-kNN-CF} & \textbf{DRL-kNN-CB} & \textbf{DRL-FM}\\
+%  \hline
+%  0 & 8.95 & 3.6 & 8.06 & 11.81 \\
+%  2,500 & 8.57 & 18.11 & 18.14 & 33.68 \\
+%  5,000 & 8.06 & 20.06 & 31.04 & 39.82 \\
+%  7,500 & 9.99 & 20.35 & 35.04 & 33.39 \\
+%  10,000 & 10.7 & 20.67 & 30.32 & 36.55 \\
+%  12,500 & 8.26 & - & 29.22 & 33.91 \\
+%  15,000 & 10.84 & - & 26.72 & 32.97 \\
+%  17,500 & 9.84 & - & 29.55 & 36.73 \\
+%  20,000 & 9.84 & - & 32.88 & 38.73 \\
+%  \hline
+%\end{tabular}
+%\caption{Agent's performance during training in terms of average return}
+%\label{table:return_table}
+%\end{table}
+
+\begin{figure}[t]
 \centering
-\caption{Models performance during training in the 100k Movielens recommender task}
 \includegraphics[scale=0.6]{images/eval_return_train}
+\caption[Model average return during training]{Model average return during training}
 \label{fig:return_train}
 \end{figure}
 
-On the other hand, the DRL-kNN-CF baseline approach does not outperform the content-based model (Its mean average return is $~ 20$), mainly due to the dimensionality of the item representation and consequently the model network size. It also reflects how the representation of the action space affects the behaviour of the k-NN based policy when finding the nearest item that produces the highest reward. Even though the model seems to have a very slow convergence behaviour, it obtains rewards significantly higher that an agent using a random policy.
+On the other hand, the DRL-kNN-CF approach does not outperform the content-based model, getting a mean average return of $ 20$ (approx.), mainly due to the dimensionality of the item representation and consequently the model network size. Its results reflect how the representation of the action space affects the behaviour of the k-NN based policy when finding the nearest item that produces the highest reward. Even though the model seems to have a very slow convergence behaviour, it obtains rewards significantly higher that a na{\"i}ive agent using a random policy.
 
-At the same time, we evaluated the average precision gathered by each model agent over episodes or user sessions. Figure \ref{fig:precision_train} shows that the DRL-kNN-CB model precision fluctuates on values near 0.9, while the DRL-kNN-CF model starts with has lower precision when it starts learning and episodes later it only obtains accuracy values between 0.4 and 0.6. Similarly, the DRL-FM model precision is very low during the first episodes but then it increases sharply and maintains average precision values near one.
+At the same time, we also evaluated the average precision gathered by each agent over episodes or user sessions. Figure \ref{fig:precision_train} shows that the precision of the DRL-kNN-CB model fluctuates on values near 0.9, while the DRL-kNN-CF obtains much lower precision since it starts learning and episodes later, accuracy values its precision over a user session falls between 0.4 and 0.6. The DRL-FM model, conversely, starts getting  very low precision during the first episodes but then it increases sharply and maintains average precision values near one. This means that the model mostly provides good recommendations to users during a session and commit less errors than the baseline models.
 
-\begin{figure}[!htbp]
+\begin{figure}[t]
 \centering
-\caption{Average precision of recommendations during episodes of learning in the 100k Movielens recommender task}
 \includegraphics[scale=0.5]{images/eval_precision_train}
+\caption{Average precision of recommendations during episodes of learning in the 100k Movielens recommender task}
 \label{fig:precision_train}
 \end{figure}
 
-In like manner and with the purpose of demonstrate the importance of the exploration/exploitation trade-off, we test the models by switching off learning (and hence exploration of items)after every 100 steps of training to evaluate how the reinforcement agents act by just exploiting the current learned model parameters. Their behaviour is presented in Figure \ref{fig:return_test} and Figure \ref{fig:precision_test}. As can be seen, the behaviour of the DRL-kNN-CF model and the random policy does not change, but the performance of the DRL-kNN-CB model is approximately similar to the DRL-FM model, obtaining a mean average return of $~34$ and $~ 35$ respectively.
+As the simulated environment models the user patience by evaluating if a user consumed of not an item given by the agent, it is natural that the longer a session, the more efficient an agent model could be. So, after going further through the results obtained in the experiments, we also analyzed the number of recommendations computed by our best two agents during user sessions. 
 
-On the other hand, in terms of average precision, both models have episodes when the precision of recommended items lies between 0.9 and 1. Even if it seems to be a good behaviour for an agent, there are certain cases where the same item is recommended more than twice under the same user session. This scenario appears as the simulated environment does not take into account diversity of items being recommended.
+The left plot in Figure \ref{fig:precision_att} presents the average number of recommended items in a session over the learning period. While the DRL-kNN-CB model learn from episodes with a range of 7-10 items, the DRL-FM model tends to experience user sessions where 8 or more items are involved. On the other hand, the right plot in Figure \ref{fig:precision_att} shows how the DRL-FM model also obtains higher precision@10 scores (around 0.6 to 0.7) than the baseline when acting over episodes. evidencing that even if the model obtains lower precision during the first iterations, the FM-policy is able boost the accuracy of recommendations and get more stable precision scores (over 0.6) than the Wolpertinger policy.
 
-\begin{figure}[t]
-\centering
-\caption{Agent's performance by pure exploitation of the model in the 100k Movielens recommender task}
-\includegraphics[scale=0.6]{images/eval_return_test}
-\label{fig:return_test}
+\begin{figure}[t]\centering
+%   \caption{\small Number of recommended items during user sessions and agents precision. (a) presents the average number of recommended items in a session over the learning period. (b) shows the averaged precision@10 obtained by agents in episodes}
+   \begin{minipage}{0.49\textwidth}
+     \centering
+     \includegraphics[width=\linewidth]{images/itemspersession}
+     \centering \small (a) Average number of items per user session
+   \end{minipage}
+   \begin {minipage}{0.49\textwidth}
+   \centering
+    \includegraphics[width=\linewidth]{images/precision_at_10}
+     \small (b) Precision@10 of agents
+   \end{minipage}
+    \caption{\small Number of recommended items during user sessions and underlying agents precision.}
+      \label{fig:precision_att}
 \end{figure}
 
+Additionally, and with the purpose of demonstrate the importance of the exploration/exploitation trade-off, we test the models by switching off learning (and hence exploration of items)after every 100 steps of training to evaluate how the reinforcement agents act by just exploiting the current learned model parameters. Results are presented in Figure \ref{fig:return_test} and Figure \ref{fig:precision_test}. As can be seen, the behaviour of the DRL-kNN-CF model and the random policy does not change, but the performance of the DRL-kNN-CB model is now approximately similar to the DRL-FM model, obtaining a mean average return of approximately $34$ and $35$ respectively.
+
 \begin{figure}[t]
 \centering
-\caption{Average precision of recommendations by pure exploitation of the model in the 100k Movielens recommender task}
+\includegraphics[scale=0.6]{images/eval_return_test}
+\caption{Agent's performance by pure exploitation of the model}
+\label{fig:return_test}
+\end{figure}
+\begin{table}[t]
+\centering
+\begin{tabular}{ |l|r|r|r|r|r|r|r|r| }
+  \hline
+  & \multicolumn{2}{|c|}{\textbf{Random}} & \multicolumn{2}{|c|}{\textbf{DRL-kNN-CF}} & \multicolumn{2}{|c|}{\textbf{DRL-kNN-CB}} & \multicolumn{2}{|c|}{\textbf{DRL-FM}}\\
+  \hline \hline
+  Steps & Train & Exploit & Train & Exploit & Train & Exploit & Train & Exploit \\
+  \hline \hline
+  0 & 8.95 & 9.23 & 3.60 & 2.48 & 8.06 & 10.44 & 11.81 & 0 \\
+  2,500 & 8.57 & 9.12 & 18.11 & 27.79 & 18.14 & 18.64 & 33.68 & 33.01 \\
+  5,000 & 8.06 & 9.30 & 20.06 & 29.32 & 31.04 & 30.03 & 39.82 & 33.29 \\
+  7,500 & 9.99 & 8.36 & 20.35 & 30.04 & 35.04 & 37.26 & 33.39 & 35.53 \\
+  10,000 & 10.70 & 10.22 & 20.67 & 22.17 & 30.32 & 36.83 & 36.55 & 40.97 \\
+  12,500 & 8.26 & 10.52 & - & - & 29.22 & 38.80 & 33.91 & 33.23 \\
+  15,000 & 10.84 & 7.91 & - & - & 26.72 & 31.52 & 32.97 & 32.66 \\
+  17,500 & 9.84 & 11.15 & - & - & 29.55 & 35.06 & 36.73 & 38.13 \\
+  20,000 & 9.80 & 11.15 & - & - & 32.88 & 34.60 & 38.73 & 34.08 \\
+  \hline
+\end{tabular}
+\caption{Agent's performance in terms of average return}
+\label{table:return_table}
+\end{table}
+
+In terms of average precision over user sessions, both models have episodes where the precision of recommended items lies between 0.9 and 1. Even if it seems to be a good behaviour for an agent, we found certain cases where the same item is recommended more than twice under the same user session, and which can lead possible flaw when users interests are to find new items. This scenario appears as the simulated environment does not take into account diversity of items being recommended.
+
+Finally, Table \ref{table:return_table} summarizes the performance of agents under both configurations. The DRL-kNN-CB model is able to reach a similar performance than DRL-FM by pure exploitation of the model parameters at certain times. On the other hand, the DRL-FM model does not get any reward (and thus is not able to recommend) during the first steps, but then it starts giving good recommendations and getting reward values close to those obtained during training. Therefore, the need to define an exploration/exploitation trade-off under a policy will allow a balance between both behaviours to, for example to obtain higher reward by exploiting the learned DRL-kNN-CB model while keeping learning at the same time.
+
+\begin{figure}[!t]
+\centering
 \includegraphics[scale=0.6]{images/eval_precision_test}
+\caption{Average precision of recommendations by pure exploitation of the model}
 \label{fig:precision_test}
 \end{figure}

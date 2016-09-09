@@ -1,41 +1,41 @@
-# University College London - MSc Thesis Project #
+## Learning to Recommend using a Deep Reinforcement Agent
 
-# Collaborative Filtering using a Deep Reinforcement Learning Approach
+This is a project developed as part of my thesis dissertation for the M.Sc programme in Web Science and Big Data Analytics at University College London
 
 ******
 
-Author
-======
+### Author
+* [Santiago Gonzalez Toral](hernan.toral.15@ucl.ac.uk) | M.Sc WSBDA Candidate
 
-* [Santiago Gonzalez Toral](hernan.toral.15@ucl.ac.uk) | MSc WSBDA Candidate
+### Supervisor
 
-Supervisors
-======
+* [Dr. Jun Wang]() | M.Sc WSBDA Director & Senior Lecturer
 
-* [PhD. Jun Wang]() | MSc WSBDA Director & Senior Lecturer
+### Overview
 
+1. [System Dependencies](#requirements)
+2. [Setup](#setup)
+3. [Datasets](#datasets)
+4. [Running the environment](#run)
+5. [Evaluation of experiments](#experiments)
+5. [License](#license)
 
-Overview
-======
+---
 
-.. contents:: **Contents of this document**
-   :depth: 2
+### System Dependencies
 
-System Requirements and Setup
-======
+The following packages are needed to execute the project models
 
 - `Python 2.7`
 - `Virtualenv`
 - `Tensorflow`
 - `Jupyter notebook`
-- `Graphlab API 2.1` (with Academic License)
+- `Graphlab Create API 2.1` (with Academic License)
 
 
-Dependencies
-======
+### Setup
 
-Installation
-======
+To setup the environment, the following commands need to be executed:
 
 ```bash
 $ git clone https://santteegt@bitbucket.org/msc_drl/ucl-cfdrl-msc.git
@@ -55,29 +55,46 @@ $ source .venv/bin/activate
 (venv)$ pip install --upgrade --no-cache-dir https://get.graphlab.com/GraphLab-Create/2.1/hernan.toral.15@ucl.ac.uk/55E9-2088-3AF8-120F-D171-1AAB-95A3-B077/GraphLab-Create-License.tar.gz
 
 ```
-## FLANN Installation
 
-Download Flann from (Official Site)[http://www.cs.ubc.ca/research/flann/] and extract the contents to the project home directory
+### Datasets
 
-Pre-requisite: (Cmake)[https://cmake.org/]
+[Movielens](http://grouplens.org/datasets/movielens/) datasets files were pre-processed for running the models. They can be downloaded from the following URL: [Dataset files](https://mega.nz/#F!oFYFmZyQ!UERNs4e3Jvvkml2zNj2ngA)
+
+Then, 
+
+* Extract and copy the contents of FMmodel.zip to the `data` folder
+* To use the Movielens-100k dataset, extract the contents of the data-movielens100k.zip file into the `data` folder
+* To use the Movielens-1M dataset, extract the contents of the data-movielens1m.zip file into the `data` folder
+
+### Running the environment
+
+To make the running process more easier, executable files for each experiment are provided under the `bin` folder (make sure to activate the virtualenv before running the exec file):
+
+1. **DRL-kNN-CB**: `run-v2.sh` runs the model for the Movielens 100k dataset. `run-v0.sh` runs the model for the Movielens 1M dataset
+2. **DRL-kNN-CF**: `run-v1.sh` runs the model for the Movielens 100k dataset.
+3. **DRL-FM**: `run-v3.sh` runs the model for the Movielens 100k dataset.
+4. **Random agent**: `run-v1-random.sh` `run-v2-random.sh` runs the DDPG algorithm using a random agent
+
+Human readable rendering of recommendations made while running the model can be seen using the following command:
 
 ```bash
-(venv)$ cd flann-1.8.4-src
-(venv)$ mkdir build
-(venv)$ cd build
-(venv)$ cmake ..
-(venv)$ execute cmake-gui and set PYTHONPATH=${project_dir}/.venv/lib/python2.7
-(venv)$ make
-(venv)$ sudo make install
+(venv)$ cd ucl-drl-msc
+(venv)$ tail -F run.log
 ```
 
-Running the environment
-======
+Reward logs obtained by an agent while running the model can be read using the following command:
 
 ```bash
-(venv)$ mkdir ddpg-results
-(venv)$ python src/run.py --outdir ddpg-results/experiment1 --env CollaborativeFiltering-v0
+(venv)$ cd ucl-drl-msc
+(venv)$ tail -F ddpg-results/experiment1/output.log
+```
+Additionally, to visualize the model parameters during training, you can run the Tensorflow dashboard using the following command
+
+```bash
+(venv)$ cd ucl-drl-msc
+(venv)$ python src/dashboard.py --exdir ddpg-results/
 ```
 
-License and Version
-======
+### License
+
+The Project code is mostly developed under the Apache2 license, except for the module developed using Graphlab Create which is based on an Academic License provided by Turi

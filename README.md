@@ -1,7 +1,8 @@
 ## Learning to Recommend using a Deep Reinforcement Agent
 
-This is a project developed as part of my thesis dissertation for the M.Sc programme in Web Science and Big Data Analytics at University College London
+This is a project developed as part of my thesis dissertation for the M.Sc programme in Web Science and Big Data Analytics at University College London.
 
+It implements a Deep Reinforcement Learning algorithm that learns to give good recommendations to users under a simulated environment built using the OpenAI gym framework. For more information, refer to the main [document](https://github.com/santteegt/ucl-drl-msc/blob/master/latex_doc/Main.pdf).
 ******
 
 ### Author
@@ -27,6 +28,7 @@ The following packages are needed to execute the project models
 
 - `Python 2.7`
 - `Virtualenv`
+- `OpenAI gym`
 - `Tensorflow`
 - `Jupyter notebook`
 - `Graphlab Create API 2.1` (with Academic License)

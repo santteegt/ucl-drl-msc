@@ -6,11 +6,11 @@ It implements a Deep Reinforcement Learning algorithm that learns to give good r
 ******
 
 ### Author
-* [Santiago Gonzalez Toral](hernan.toral.15@ucl.ac.uk) | M.Sc WSBDA Candidate
+* [Santiago Gonzalez Toral](hernan.toral.15@ucl.ac.uk) | M.Sc Web Science and Big Data Analytics (WSBDA) candidate
 
 ### Supervisor
 
-* [Dr. Jun Wang]() | M.Sc WSBDA Director & Senior Lecturer
+* [Dr. Jun Wang]() | Reader at University College London. Programme Director of M.Sc WSBDA
 
 ### Overview
 

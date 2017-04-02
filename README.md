@@ -59,7 +59,7 @@ $ source .venv/bin/activate
 
 ### Datasets
 
-[Movielens](http://grouplens.org/datasets/movielens/) datasets files were pre-processed for running the models. They can be downloaded from the following URL: [Dataset files](https://mega.nz/#F!oFYFmZyQ!UERNs4e3Jvvkml2zNj2ngA)
+[Movielens](http://grouplens.org/datasets/movielens/) datasets files were pre-processed for running the models. They can be downloaded from the following URL: [Dataset files](https://mega.nz/#F!oFYFmZyQ!UERNs4e3Jvvkml2zNj2ngA) [Alternative 2](https://drive.google.com/open?id=0BxTIDC-8xn61bDRyT25SM1k5MTg)
 
 Then, 
 
